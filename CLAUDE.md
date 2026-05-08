@@ -115,6 +115,8 @@ Grouped by family. Type `/<family>-` in autocomplete to see siblings.
 | `/notion-write <create\|update> ...` | Create/update Customer, Session, Task, Active Package, Contact records. |
 | `/notion-check [--customer <name>] [--fix]` | Walk Notion looking for ownership / data drift — null Owners, missing/duplicate Active Packages, propagation drift, orphan packages, planned-but-past sessions, Tasks missing Customers. Read-only by default; `--fix` applies low-risk corrections. |
 | `/notion-sync-sf [--customer <name>] [--owner <name>] [--apply]` | Sync Salesforce ARR and contract end dates into Active Packages — fills null ARRs, corrects stale end dates, handles renewal rollovers (deactivate old + create new), flags churned/at-risk accounts for review. `--owner` runs for a teammate's packages instead of your own (always confirms before proceeding). |
+| `/notion-sync-owner [--mine\|--global]` | Push `Customer.Owner` → `Current Account Owner` on all linked Sessions, Tasks, and Active Packages. `--mine` (default) scopes to your accounts; `--global` runs across the whole workspace (asks for confirmation). |
+| `/notion-flag-renewals [--mine\|--global] [--days N] [--dry-run]` | Set `Status = Renewal` on active packages ending within N days (default 90) that aren't already flagged. `--dry-run` previews without writing. |
 
 ### `assistant-*` — meta / configure the assistant itself
 
