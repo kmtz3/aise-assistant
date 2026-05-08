@@ -5,6 +5,14 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [2.2.2] — 2026-05-09
+
+### Changed
+- Extract identity resolution into a canonical procedure in `context/notion-schema.md` § Identity resolution (three-path chain + graceful stop + `--global` skip rule)
+- `notion-flag-renewals` and `notion-sync-owner` Step 1 now reference the shared procedure instead of inlining it
+
+---
+
 ## [2.2.1] — 2026-05-09
 
 ### Fixed

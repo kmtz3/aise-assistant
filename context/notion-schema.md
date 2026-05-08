@@ -40,7 +40,22 @@ The Customer Tracker is a **shared workspace** with other PB AISEs. Two compleme
 
 **Active Packages have `Delivered By (Sessions)`** — a **rollup** showing unique presenters across linked Sessions, computed automatically. Cannot be written.
 
-**User's Notion ID**: see [`about/identity.md`](../about/identity.md) → `notion_user_id`. All filter examples below use `<user-uuid>` as a placeholder; substitute the value from `about/identity.md` at runtime.
+**User's Notion ID**: see `about/identity.md` → `notion_user_id`. All filter examples below use `<user-uuid>` as a placeholder; substitute the value from `about/identity.md` at runtime.
+
+### Identity resolution procedure
+
+Agents and skills that need `<user-uuid>` at runtime must locate `about/identity.md` and read `notion_user_id`. Try in order:
+
+1. **Pointer file (fastest):** `PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir")` → read `$PLUGIN_DATA_DIR/about/identity.md`.
+2. **Glob fallback:** search for `about/identity.md` under known macOS plugin data directories:
+   - `~/Library/Application Support/Claude/local-agent-mode-sessions/*/rpm/plugin_*/about/identity.md`
+   - `/var/folders/**/aise-assistant*/about/identity.md`
+3. **Notion lookup:** call `notion-get-users` and match against the userEmail `klara.martinez@productboard.com` (available in system context) to retrieve the Notion user ID.
+
+**If all three fail:** surface this message inline and stop — do not attempt a Notion query with a missing filter:
+> ⚠️ Identity not set up — run `/assistant-setup` first, or use `--global` to scan all packages.
+
+**Conditional skip:** when a skill's scope is `--global` (no owner filter needed), skip identity resolution entirely — do not attempt the file lookup.
 
 ---
 

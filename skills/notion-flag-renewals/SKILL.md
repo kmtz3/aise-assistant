@@ -11,16 +11,7 @@ Do **not** spawn a subagent — execute the steps below inline as the main assis
 
 **1. Resolve identity (--mine only — skip entirely for --global).**
 
-Only needed when scope is `--mine` (the default). Try in order until `notion_user_id` is found:
-
-1. `PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir")` → read `$PLUGIN_DATA_DIR/about/identity.md` → extract `notion_user_id`.
-2. Glob for `about/identity.md` under known plugin data directories:
-   - `~/Library/Application Support/Claude/local-agent-mode-sessions/*/rpm/plugin_*/about/identity.md`
-   - `/var/folders/**/aise-assistant*/about/identity.md`
-3. Fall back: call `notion-get-users` and match against the userEmail `klara.martinez@productboard.com` from system context to get the Notion user ID.
-
-If all three paths fail, surface this message and stop:
-> ⚠️ Identity not set up — run `/assistant-setup` first, or use `--global` to scan all packages.
+Follow the **Identity resolution procedure** in `context/notion-schema.md` § Identity resolution. Extract `notion_user_id` as `<user-uuid>`.
 
 **2. Determine scope and parameters.**
 - `--mine` (default): filter `Current Account Owner LIKE '%<user-uuid>%'`
@@ -82,14 +73,6 @@ Sleep 380 ms between each write.
 - Do **not** flag packages with `Status = Package Expired` — the contract end date has already passed.
 - `date:End Date:start` is the SQL column name; its value is a `YYYY-MM-DD` string.
 - The skill's base directory is shown in the `Base directory:` header line of the skill invocation — sibling `about/` paths can be derived from it.
-
-## Plugin data directory locations (macOS)
-The persistent plugin data dir (written by the SessionStart hook) is at:
-```
-~/.claude/aise-assistant.datadir  →  contains the full path, e.g.:
-~/Library/Application Support/Claude/local-agent-mode-sessions/<session>/rpm/plugin_<id>/
-```
-If the pointer file is absent, glob for `about/identity.md` under `~/Library/Application Support/Claude/local-agent-mode-sessions/`.
 
 ## Flags
 - `--mine` — scope to the current user's packages (default)

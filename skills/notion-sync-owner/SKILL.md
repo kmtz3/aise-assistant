@@ -9,8 +9,9 @@ Do **not** spawn a subagent — execute the steps below inline as the main assis
 
 ## Steps
 
-**1. Resolve identity.**
-Read `<PLUGIN_DATA_DIR>/about/identity.md` (path via `PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir")`). Extract `notion_user_id` as `<user-uuid>`.
+**1. Resolve identity (--mine only — skip entirely for --global).**
+
+Follow the **Identity resolution procedure** in `context/notion-schema.md` § Identity resolution. Extract `notion_user_id` as `<user-uuid>`.
 
 **2. Determine scope from flag.**
 - `--mine` (default when no flag given): add `WHERE Owner LIKE '%<user-uuid>%'`
