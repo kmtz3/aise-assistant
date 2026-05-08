@@ -5,6 +5,16 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [2.2.3] — 2026-05-09
+
+### Fixed
+- `notion-sync-owner`: accept `--me` as an alias for `--mine` in Step 2 and Flags section
+- `notion-sync-owner`: Customers/Customer relation fields store hyphen-stripped Notion page URLs — LIKE pattern now uses `<customer-url-id>` (hyphens removed), not the bare UUID
+- `notion-sync-owner`: drift filter (`Current Account Owner NOT LIKE '%<owner-uuid>%' OR IS NULL`) moved directly into Step 4 WHERE clauses; removed separate Step 5 drift-detection pass to avoid hitting the 500-row LIMIT on already-correct records
+- `notion-sync-owner`: Step 1 now documents a fallback to `notion-get-users` with the user's email when `identity.md` is not found, preventing a hard-fail on fresh installs
+
+---
+
 ## [2.2.2] — 2026-05-09
 
 ### Changed
