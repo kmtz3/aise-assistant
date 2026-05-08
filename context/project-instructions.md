@@ -61,7 +61,7 @@ Also search past conversations (`conversation_search`) — I may have worked on 
 When finding notes or a transcript for a specific session, try these sources in order. Never ask the user to paste what you can retrieve.
 
 1. **Glean `meeting_lookup`** — primary; Gong recordings and transcripts surface here. For inherited accounts not yet in the user's calendar, this often returns empty — fall through to step 2 immediately rather than retrying.
-2. **Glean `search` with `app:gong`** + `read_document` — search Glean with `app:gong` + customer name to surface Gong call URLs, then call `read_document` on each URL to get the full transcript.
+2. **Glean `search` with `app:gong`** + `read_document` — search Glean with `app:gong` + customer name. From each result object, extract the `id` field and pass it to `read_document` to retrieve the full transcript. Do not pass a URL string to `read_document` — only the `id` from the search result object.
 3. **Notion `query-meeting-notes`** — Notion's meeting notes database.
 4. **Notion search** — check the Session page body for notes dropped in manually, plus adjacent pages ("Follow-up", customer account page).
 5. **Glean `gmail_search`** / Gmail `search_threads` — follow-up threads sometimes contain recap notes.

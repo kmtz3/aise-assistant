@@ -5,6 +5,16 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [2.2.4] — 2026-05-09
+
+### Fixed
+- `session-summarizer` / `project-instructions.md`: Glean `read_document` step now extracts the `id` field from search result objects instead of passing a URL string (which the tool rejects)
+- `account-setup`: same `read_document` fix in Step 2 (Gong transcripts) and Guardrails
+- `post-session-debrief` Step 12: Customer page update now fetches the page first, checks for template headings before writing, and falls back to appending a `## 📋 Account Notes` section on pages with non-standard templates instead of erroring
+- Remove all references to `## 🤝 PB Account Team` — section deleted from the Customer page template; `notion-schema.md` table updated (five → four sections), `account-setup` Step 4A and Step 5 updated accordingly; AE/Renewal Manager info redirected to page properties
+
+---
+
 ## [2.2.3] — 2026-05-09
 
 ### Fixed

@@ -239,7 +239,30 @@ Candidates include:
 - New product or tool information that affects the account-level picture.
 - Goals or success criteria that were newly articulated.
 
-If anything qualifies, write a targeted update to the Customer page body via `notion-writer` directly. If nothing account-notable surfaced, skip this step and note that in the final report.
+If nothing account-notable surfaced, skip this step and note that in the final report.
+
+If anything qualifies, follow this **fetch-first, fallback-append** pattern:
+
+**a) Fetch the Customer page first.** Before any write, call `notion-fetch` on the Customer page URL and inspect the page body for which H2 headings are present.
+
+**b) If the page has the current template headings** (`## 🏢 Company Overview`, `## 🔗 Workspace & Plan`, `## 👥 Key Contacts`, `## 💚 Health & Lifecycle`), use `update_content` anchored on the exact heading text found. Write targeted updates — e.g. add a new contact under `## 👥 Key Contacts`, update the lifecycle note under `## 💚 Health & Lifecycle`. Do not overwrite sections wholesale; replace only the specific lines that changed.
+
+**c) If the page does NOT have the expected headings** (older or custom template), do NOT error. Instead, append a new `## 📋 Account Notes` section at the end of the page body using `update_content` anchored on the last non-empty content block. Write the account-notable content there:
+
+```
+## 📋 Account Notes
+*Updated YYYY-MM-DD*
+
+**AISE:** [name]
+**AE:** [name]
+
+**Key risks / flags:**
+- [item]
+
+**Latest session:** [session name + date] — [1-line summary]
+```
+
+**d)** In both cases, verify the Customer page `Owner` field contains the current user before writing — if it doesn't, surface the conflict and stop rather than overwriting a teammate's record.
 
 ### 13. Update the Active Package page: mark session done and refresh next steps
 

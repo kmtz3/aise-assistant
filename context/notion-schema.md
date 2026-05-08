@@ -226,14 +226,13 @@ Customer pages are created by users via the Notion UI, not by agents. The templa
 
 **`apply_template` does NOT apply here.** Agents update existing Customer pages only (`update_content` / `update_properties`).
 
-The template's `# About` section has five labeled H2 subsections that agents target by heading text:
+The template's `# About` section has four labeled H2 subsections that agents target by heading text:
 
 | Section heading | What agents write there |
 |---|---|
 | `## 🏢 Company Overview` | What they do, industry, scale, HQ, revenue / ownership (1–4 sentences) |
 | `## 🔗 Workspace & Plan` | PB workspace URL, plan name, seat count, billing cycle, contract start/end |
 | `## 👥 Key Contacts` | Name, title, email — one bullet per contact, confirmed sources only |
-| `## 🤝 PB Account Team` | AISE, AE, Renewal Manager, Predecessor AISE — from Salesforce |
 | `## 💚 Health & Lifecycle` | Vitally health score, account status, renewal date |
 
 Below the labeled sections, the template also has human-editable visual sections (`Objectives`, `Milestones`, `Product Deep Dive`, `Tools Overview`, `Product Org`, `Sessions Progress`) — agents do **not** write to these.
