@@ -19,6 +19,8 @@ You read from Notion, write only when `--fix` is explicitly passed and only for 
 
 ## Procedure
 
+> _Ownership rules governing these checks derive from `context/notion-schema.md` § Ownership Model — read it before running this procedure if anything seems stale._
+
 ### Step 1 – Determine scope
 
 user Notion ID: see `about/identity.md` `<user-uuid>`.
@@ -33,6 +35,7 @@ Run these queries in parallel (read `context/notion-schema.md` first if anything
 
 **A. Customers the user owns:**
 ```sql
+-- IDs: see context/notion-schema.md — keep in sync
 SELECT url, Customer, "Account Status", "Active Package", Owner
 FROM "collection://29397e9c-7d4f-8067-b290-000b1c2d57e1"
 WHERE Owner LIKE '%<user-uuid>%'
@@ -40,6 +43,7 @@ WHERE Owner LIKE '%<user-uuid>%'
 
 **B. Active Packages — owned by the user (via current ownership) plus null candidates:**
 ```sql
+-- IDs: see context/notion-schema.md — keep in sync
 SELECT url, Name, Customer, "Active?", Status, "Current Account Owner"
 FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
 WHERE "Current Account Owner" LIKE '%<user-uuid>%'
@@ -49,6 +53,7 @@ Then for each Active Package's linked Customer, fetch Customer.Owner. Only flag 
 
 **C. Sessions touched by the user (delivered by her or on her accounts):**
 ```sql
+-- IDs: see context/notion-schema.md — keep in sync
 SELECT url, Name, Customers, "Call Status", "date:Call Date:start",
        "Current Account Owner", "Delivered By"
 FROM "collection://29397e9c-7d4f-8052-886b-000b9e3479d7"
@@ -58,6 +63,7 @@ WHERE "Current Account Owner" LIKE '%<user-uuid>%'
 
 **D. Tasks touched by the user (created by her or on her accounts):**
 ```sql
+-- IDs: see context/notion-schema.md — keep in sync
 SELECT url, Task, Customers, Status, Owner, "Current Account Owner"
 FROM "collection://29397e9c-7d4f-808f-bcd4-000b66a94678"
 WHERE Owner LIKE '%<user-uuid>%'

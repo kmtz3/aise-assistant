@@ -53,7 +53,7 @@ For each event collect: title, start/end datetime, attendee list (name + email d
 
 ### 3. Check prep status — today's external sessions
 
-For each of today's external customer sessions, query the Sessions DB (`29397e9c-7d4f-8052-886b-000b9e3479d7`) filtered by `Call Date = target date`. Fetch the page body. Check whether a `📋 Prep —` toggle heading exists.
+For each of today's external customer sessions, query the Sessions DB (see `context/notion-schema.md`) filtered by `Call Date = target date`. Fetch the page body. Check whether a `📋 Prep —` toggle heading exists.
 
 Badge each session:
 - Notion session found + prep toggle exists → `✅ Prep done`

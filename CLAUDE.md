@@ -25,6 +25,7 @@ Read these when the task touches their subject. Don't duplicate their content he
 | `<PLUGIN_DATA_DIR>/about/identity.md` | Name, Notion user ID, email, role, time zone. **Read for any agent that filters Notion by user, writes drafts in the user's voice, or references the user by name.** |
 | `<PLUGIN_DATA_DIR>/about/voice.md` | Personal communication preferences: sign-offs, em-dash rule, semicolons, English variant, casual register, forbidden filler words. Overlays the universal style guide. |
 | `<PLUGIN_DATA_DIR>/about/workspace.md` | Workspace-specific context: conferencing tool, Calendly links, Slack channel patterns, internal coordinators. |
+| `<PLUGIN_DATA_DIR>/about/tracker-memory.md` | **Cross-customer observations only** — patterns and learnings spanning ≥2 customers. Per-customer state and active-engagements list are queried live from Notion; not cached here. Written by `context-keeper`; seeded empty by `/assistant-setup`. |
 
 ### Universal (apply to any user)
 
@@ -37,7 +38,6 @@ Read these when the task touches their subject. Don't duplicate their content he
 | [context/notion-writer-playbook.md](context/notion-writer-playbook.md) | How to write Notion page content (structure, tone, formatting) |
 | [context/notion-schema.md](context/notion-schema.md) | Customer Tracker database schema, IDs, field formats, known gotchas |
 | [context/engagement-planning-guide.md](context/engagement-planning-guide.md) | Framework for full program plans (goals → milestones → phases → sessions). Reference for `/customer-plan-engagement`. |
-| [context/tracker-memory.md](context/tracker-memory.md) | **Cross-customer observations only** — patterns and learnings spanning multiple customers. Per-customer state and active-engagements list are queried live from Notion (Customer.Owner filter); not cached locally. |
 | [templates/session-kdds/](templates/session-kdds/) | Customer-facing KDD anchor templates, one per A-session type. Agents read + adapt; never overwrite. See folder README for the convention. |
 
 **Source of truth for Notion schema** is [`context/notion-schema.md`](context/notion-schema.md). Keep it current via the `context-keeper` agent when schema drift is detected.
@@ -53,7 +53,7 @@ Read these when the task touches their subject. Don't duplicate their content he
 - **Preserve the user's decisions** when rewriting their drafts.
 - **Flag conflicts** between sources instead of silently picking one.
 - **Customer confidentiality.** Never exfil customer names / deal sizes / sensitive detail to external artefacts without explicit authorization.
-- **Owner-filter every Notion read.** The Customer Tracker workspace is shared with other PB AISEs. Two ownership fields are in play after the May 2026 revamp: **`Owner`** lives on Customers (canonical) and Tasks (creator). **`Current Account Owner`** lives on Active Packages, Sessions, Tasks — auto-mirrors `Customer.Owner` via the Resync button + Sessions automation. Filter rules: Customers query by `Owner`; Active Packages query by `Current Account Owner`; Sessions query by `Current Account Owner` OR `Delivered By` (catches stand-in delivery); Tasks query by `Owner` OR `Current Account Owner` (catches inherited tasks). The user's Notion user ID is in `<PLUGIN_DATA_DIR>/about/identity.md` — read it before constructing any filtered query. Single-customer workflows must verify `Customer.Owner` contains the current user before continuing; if it doesn't, surface the conflict. Full schema in `context/notion-schema.md`.
+- **Owner-filter every Notion read.** The workspace is shared with other PB AISEs — every Notion query must be scoped to the user's records. Full Ownership Model (which field to filter per DB, the Resync button mechanic, `Delivered By` semantics) in `context/notion-schema.md` § Ownership Model. The user's Notion user ID is in `<PLUGIN_DATA_DIR>/about/identity.md` — read it before constructing any filtered query. Single-customer workflows must verify `Customer.Owner` contains the current user before continuing; if it doesn't, surface the conflict.
 - **Dedup before create.** Before creating any Task or Session, check whether one already exists where Owner contains the current user and the candidate is a match (Tasks: same Customer + similar title + open status, or same `Source Call` + similar title; Sessions: same Customer + same date ±1 day + same Type). If a match is found, skip the create and link the existing record. Full criteria in `agents/notion-writer.md` §Pre-create dedup check.
 
 ---
@@ -98,7 +98,7 @@ Grouped by family. Type `/<family>-` in autocomplete to see siblings.
 | `/session-score <session-type>` | Score a delivered session against scorecard dimensions. |
 | `/session-debrief <customer> [session-id]` | Run the full post-session workflow in one shot: summary, Notion updates, Tasks, Gmail follow-up draft, internal Slack debrief draft, KDD sub-page (A-sessions), product feedback log, scorecard eval in chat, Active Package update. |
 | `/bulk-debrief-yesterday [--date YYYY-MM-DD] [--skip <customer>] [--rerun <customer>]` | Run the full post-session debrief for every external customer meeting from the previous calendar day — discovers from Calendar, matches to Notion, checks for prior debrief signals, and executes all fresh or partial debriefs sequentially with one confirmation gate. |
-| `/bulk-prep-week [--week YYYY-MM-DD]` | Scan the upcoming week's calendar, find all external customer sessions, and run session prep for each — deduplicates against existing Notion Session pages, updates where a page exists, creates where missing. |
+| `/bulk-prep-week [--week YYYY-MM-DD] [--skip <customer>] [--force <customer>]` | Scan the upcoming week's calendar, find all external customer sessions, and run session prep for each — deduplicates against existing Notion Session pages, updates where a page exists, creates where missing. `--skip` excludes a customer; `--force` reruns prep even if a brief already exists. |
 
 ### `draft-*` — message / artifact drafts
 
@@ -140,13 +140,15 @@ Full spec per skill in [`skills/`](skills/).
 ## Agents
 
 > **How agents work in this plugin.** Files in `agents/` are **procedure documents**, not registered subagent types. When a command says "follow the procedure in `agents/X.md`" (or an agent says "spawn X"), open the file, read it, then execute the steps inline as the main assistant. Do **not** call the Task/Agent tool with `subagent_type: <plugin-agent-name>` — only built-in subagent types are registered (`general-purpose`, `Explore`, `Plan`, etc.) and a custom name will fail validation. If you need parallelism for an expensive read, you can delegate to a `general-purpose` subagent and pass it the agent file's instructions as context.
+>
+> **Naming convention.** Agent file names reflect the internal procedure (`account-setup`, `session-prepper`). Slash commands are named for the user-facing workflow (`/customer-setup`, `/session-prep`). The asymmetry is intentional — agents are reusable procedures; commands are user-facing entry points. The table below maps each agent to the command that invokes it.
 
 | Agent | Role |
 |---|---|
 | `context-keeper` | Watches for corrections / new rules / changed facts. Proposes diffs against the relevant context file, waits for approval, writes, and mirrors to cross-conversation memory. **Most important agent — invoke liberally.** |
 | `session-prepper` | Executes `/session-prep`. Pulls all context, writes prep brief into Notion session page under a toggle heading. For architecting sessions also produces the customer-facing KDD sub-page. |
 | `kdd-builder` | Executes `/session-kdds` (and invoked by `session-prepper` for A-sessions). Builds the customer-facing KDD doc per `templates/session-kdds/00-index.md` and creates it as a sub-page of the Notion Session page. |
-| `session-summarizer` | Executes `/session-summary`. Finds transcripts independently, extracts structured output, proposes Notion updates. |
+| `session-summarizer` | Executes `/session-summary`. Finds transcripts independently, extracts structured output, writes Notion updates and PB-side tasks directly. |
 | `engagement-planner` | Executes `/customer-plan-engagement`. Pulls customer context, builds a goals/milestones/phases/sessions plan per `engagement-planning-guide.md`, iterates with the user, then writes the approved plan to the Active Package page body via `notion-writer`. |
 | `account-setup` | Executes `/customer-setup`. Detects whether the customer has post-sales history (new vs. existing customer mode). Researches the company (web + Salesforce), pulls Gong + Gmail history, maps the Master Package, proposes and writes Customer page + Active Package with history summary. In existing customer mode, also backfills all relevant post-sales sessions as Session records in Notion (sales calls excluded). |
 | `email-drafter` | Executes `/draft-email`. Pulls context across Glean / Notion / Gmail / Calendar to ground the draft in real session history + outstanding commitments, writes in the user's voice (per `about/voice.md`), saves to Gmail Drafts. **Never sends.** |

@@ -17,6 +17,7 @@ Run `/assistant-setup` to populate it. The directory is created automatically on
 | `identity.md` | Name (incl. accent variants to strip), email, Notion user ID, role, team, time zone |
 | `voice.md` | Personal communication style: sign-offs, formatting quirks, language rules, casual register |
 | `workspace.md` | Workspace specifics: Slack channels, internal coordinators, conferencing prefs, AE/AISE relationships |
+| `tracker-memory.md` | Cross-customer observations: patterns spanning ≥2 customers, recurring risks, success moves. Written by `context-keeper`; seeded empty by `/assistant-setup`. |
 
 Universal communication methodology (PB-AISE comms patterns, customer-vs-internal tone, structure templates) lives in [`context/communication-style-guide.md`](../context/communication-style-guide.md). Your `voice.md` overlays personal preferences on top.
 

@@ -10,7 +10,9 @@ Not your job: prep sessions that already have a `📋 Prep` toggle; confirm or s
 
 ## Inputs
 
-Optional `--week YYYY-MM-DD` (anchor to a Monday). Defaults to today → today + 7 days.
+- `--week YYYY-MM-DD` (optional) — anchor to a specific Monday. Defaults to today → today + 7 days.
+- `--skip <customer>` (optional, repeatable) — exclude a named customer from this run. Useful when a session is confirmed-cancelled or you want to prep it manually.
+- `--force <customer>` (optional, repeatable) — rerun prep for a customer even if a `📋 Prep` toggle already exists on the Session page. Overwrites the existing prep.
 
 ## Procedure
 
@@ -19,6 +21,7 @@ Optional `--week YYYY-MM-DD` (anchor to a Monday). Defaults to today → today +
 - Default: today through today + 7 calendar days.
 - If `--week YYYY-MM-DD` is provided, use that Monday → following Sunday (inclusive).
 - Read `about/identity.md` to get the user's Notion user ID and email domain.
+- Parse `--skip` and `--force` values into two lists for use in later steps.
 
 ### 2. Pull calendar events
 
@@ -38,9 +41,13 @@ For each external event:
 
 ### 4. Dedup against existing Notion Session pages
 
-For each matched customer + event date:
+Before evaluating each matched customer + event, apply flags:
+- **`--skip` list:** if the customer name matches a `--skip` value, log as **⏭️ Skipped (--skip flag)** and continue to the next event immediately.
+- **`--force` list:** if the customer name matches a `--force` value, treat the session as Case B regardless of whether a prep toggle exists — always rerun prep and overwrite.
+
+For each remaining matched customer + event date:
 - Query Sessions DB: Customer relation = matched customer page + session date within ±1 day.
-- **Case A — Session page exists AND body contains a `📋 Prep` toggle:** log as **⏭️ Already prepped** and skip entirely.
+- **Case A — Session page exists AND body contains a `📋 Prep` toggle:** log as **⏭️ Already prepped** and skip entirely. (Override with `--force` to rerun.)
 - **Case B — Session page exists but NO `📋 Prep` toggle in body:** proceed to step 5, targeting this existing page.
 - **Case C — No session page exists:** proceed to step 5; session-prepper will create the page.
 
@@ -62,6 +69,7 @@ After all sessions are processed, post a summary table:
 | BrandCo — Sync | BrandCo | Tue May 13 | ⏭️ Already prepped |
 | TechFirm — Architecting | TechFirm | Wed May 14 | ✅ Prepped + KDD sub-page |
 | "Q2 Review call" | — | Thu May 15 | ⚠️ Unmatched — no Customer record found |
+| StartupCo — Check-in | StartupCo | Fri May 16 | ⏭️ Skipped (--skip flag) |
 
 Include: total events scanned, external sessions found, prepped, skipped, flagged. Link each prepped Notion Session page directly.
 

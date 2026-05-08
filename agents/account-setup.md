@@ -32,12 +32,13 @@ You determine the mode as part of Step 2 research. State the detected mode clear
 
 ### 1. Locate the customer in Notion
 
-Search the Customers DB (`29397e9c-7d4f-8067-b290-000b1c2d57e1`) by name. If the Customer page doesn't exist, flag it — creating a net-new Customer record is out of scope here; ask the user to create it first via `/notion-write create customer`.
+Search the Customers DB (see `context/notion-schema.md`) by name. If the Customer page doesn't exist, flag it — creating a net-new Customer record is out of scope here; ask the user to create it first via `/notion-write create customer`.
 
 Capture the Customer page URL — you'll need it for relations.
 
 Check whether an Active Package already exists for this customer:
 ```sql
+-- ID: see context/notion-schema.md — keep in sync
 SELECT * FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
 WHERE Customer LIKE '%[customer-page-id]%'
 ```
@@ -98,7 +99,7 @@ After pulling all Gong results, **apply the session relevance filter** (see Guar
 
 ### 3. Map the Master Package
 
-From the Salesforce `servicesplan` field, map to the Master Packages DB (`29397e9c-7d4f-8079-b9d6-000bd95ee92f`):
+From the Salesforce `servicesplan` field, map to the Master Packages DB (see `context/notion-schema.md`):
 
 | Salesforce servicesplan | Master Package name |
 |---|---|
@@ -136,7 +137,7 @@ List what you'll add to the Customer page (currently empty template sections):
 
 | Field | Value |
 |---|---|
-| Name | Year of engagement (e.g. `2025`) or `YYYY · [Master Package name]` |
+| Name | `{Year} – {Customer Name} | {Master Package}` (en-dash with spaces, pipe with spaces; year = contract start year). Example: `2025 – Acme Corp | Essential Services`. |
 | Customer | [relation to Customer page] |
 | Master Package | [relation — confirmed from step 3] |
 | Status | `Activating` (if engagement underway), `Preparing` (if just starting), or `Not started` |
@@ -177,7 +178,7 @@ Per the notion-writer-playbook: **Active Packages are financial ledger records �
 
 After the user approves (or says "just do it"), write in this order:
 1. Update the Customer page (`notion-update-page`, `replace_content` for empty template sections, `update_content` for targeted edits).
-2. Create the Active Package record (`notion-create-pages`, parent = `data_source_id: 29697e9c-7d4f-8031-9f76-000b7e932b36`). Include the history summary as the page content.
+2. Create the Active Package record (`notion-create-pages`, parent = Active Packages DB — see `context/notion-schema.md` for ID). Include the history summary as the page content.
 3. **Existing customer mode only:** Create one Session record per relevant session in the Sessions DB (`notion-create-pages`, parent = Sessions DB). Set the Customer relation, date, type, and write the brief + next steps as the page body under a `📋 Session Summary` heading. Never create PB-side Tasks for historical sessions.
 
 ### 6. Report in chat
@@ -192,6 +193,8 @@ After the user approves (or says "just do it"), write in this order:
 ---
 
 ## Guardrails
+
+> _Ownership rules below apply the model from `context/notion-schema.md` § Ownership Model to account-setup scenarios. That file is authoritative on the underlying rules._
 
 - **Don't invent** contact names, emails, titles, dates, ARR, or commitment history. Flag gaps.
 - **Gmail URL ≠ Gmail API thread ID.** If a URL is pasted (`mail.google.com/mail/u/0/#inbox/<hash>`), use `search_threads` with topic keywords to find the thread — don't pass the hash to `get_thread`.

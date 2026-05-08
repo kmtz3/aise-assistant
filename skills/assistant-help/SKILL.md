@@ -80,7 +80,7 @@ To change them: edit directly, or run `/assistant-setup --update` for a guided d
 | **`context/pb-aise-reference-guide.md`** | Session methodology — "what good looks like" per session type |
 | **`context/communication-style-guide.md`** | Universal AISE comms patterns; `about/voice.md` overrides |
 | **`templates/session-kdds/`** | Customer-facing KDD anchor templates per A-session type |
-| **`context/tracker-memory.md`** | Cross-customer observations only (Notion is SSOT for everything else) |
+| **`<PLUGIN_DATA_DIR>/about/tracker-memory.md`** | Cross-customer observations only — per-user, written by `context-keeper` (Notion is SSOT for everything else) |
 
 ## Tips
 

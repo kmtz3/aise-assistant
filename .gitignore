@@ -3,8 +3,8 @@ about/identity.md
 about/voice.md
 about/workspace.md
 
-# Local Claude workspace settings (contains personal email + permissions)
-.claude/settings.local.json
+# Claude workspace — settings, plans, agents (private dev artefacts)
+.claude/
 
 # macOS
 .DS_Store

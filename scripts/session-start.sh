@@ -45,6 +45,11 @@ PLUGIN_DATA_DIR="${PLUGIN_DATA_DIR:-$HOME/.claude/plugins/data/aise-assistant}"
 mkdir -p "$PLUGIN_DATA_DIR/about"
 printf '%s' "$PLUGIN_DATA_DIR" > "$HOME/.claude/aise-assistant.datadir"
 
+# Warn if identity.md still has placeholder values (setup not yet run)
+if [[ -f "$PLUGIN_DATA_DIR/about/identity.md" ]] && grep -q '<TBD' "$PLUGIN_DATA_DIR/about/identity.md" 2>/dev/null; then
+  echo "[aise-assistant] WARNING: identity.md still contains placeholder values — run /assistant-setup to complete onboarding." >&2
+fi
+
 # One-time migration from legacy paths (idempotent)
 if [[ ! -f "$PLUGIN_DATA_DIR/about/identity.md" ]]; then
   for old in \

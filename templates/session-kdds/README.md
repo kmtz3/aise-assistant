@@ -12,18 +12,19 @@ The user (account owner) maintains the templates in this folder. Agents should r
 
 ## Naming convention
 
-One file per A-session type, kebab-case, matching the architecting blocks referenced in [`context/engagement-planning-guide.md`](../../context/engagement-planning-guide.md) and [`context/pb-aise-reference-guide.md`](../../context/pb-aise-reference-guide.md). Suggested set:
+One file per A-session type, prefixed with a two-digit sort key, kebab-case. Current set:
 
-- `foundations.md`
-- `backlog.md`
-- `roadmaps.md`
-- `insights.md`
-- `prioritization.md`
-- `spark.md`
-- `okrs.md`
-- `integration-design.md`
+- `01-foundations.md` — Foundations Architecture
+- `02-feedback.md` — Insights / Feedback Architecture
+- `03-prioritization.md` — Backlog Architecture / PDLC / Prioritization
+- `04-roadmaps.md` — Roadmap System Design
+- `05-workspace-settings.md` — Workspace & Governance
+- `06-integration-jira.md` — Jira Integration
+- `07-integration-salesforce.md` — Salesforce Integration
+- `08-integration-sso.md` — SSO / Okta / SCIM
+- `09-ai-spark.md` — AI + Spark Workshop
 
-Add / rename as the session taxonomy evolves.
+Add / rename as the session taxonomy evolves. Use `00-index.md` as the authoritative mapping of session type → filename — agents should resolve templates from there, not from this list.
 
 ---
 

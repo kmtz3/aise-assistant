@@ -76,11 +76,11 @@ ls "$PLUGIN_DATA_DIR/about/" 2>/dev/null || echo "  (empty — fresh install)"
 
 Use the literal `PLUGIN_DATA_DIR` path printed above for **all** Read, Write, Edit, and Bash operations in this session. The `about/ contents` line tells you immediately whether files are present (existing user) or this is a fresh install.
 
-Use the Read tool to read `<PLUGIN_DATA_DIR>/about/identity.md`, `<PLUGIN_DATA_DIR>/about/voice.md`, `<PLUGIN_DATA_DIR>/about/workspace.md` if they exist.
+Use the Read tool to read `<PLUGIN_DATA_DIR>/about/identity.md`, `<PLUGIN_DATA_DIR>/about/voice.md`, `<PLUGIN_DATA_DIR>/about/workspace.md`, and `<PLUGIN_DATA_DIR>/about/tracker-memory.md` if they exist.
 
 **`--reset` mode:**
 1. Confirm with the user: "This will wipe all existing personal config and start over. Continue? (y/n)"
-2. On confirm, delete the three files from `<PLUGIN_DATA_DIR>/about/` (the path discovered above).
+2. On confirm, delete the four files from `<PLUGIN_DATA_DIR>/about/` (the path discovered above): `identity.md`, `voice.md`, `workspace.md`, `tracker-memory.md`.
 3. Treat all fields as TBD. Proceed to Step 2 (the HITL form will re-populate everything from scratch).
 4. Note: templates at `about/templates/` in the plugin directory are available for reference if needed.
 
@@ -243,13 +243,14 @@ Use `PLUGIN_DATA_DIR` discovered in Step 1. Create the directory if needed:
 mkdir -p "$PLUGIN_DATA_DIR/about"
 ```
 
-Then write the three files using their **absolute literal paths** (substitute `$PLUGIN_DATA_DIR`):
+Then write the four files using their **absolute literal paths** (substitute `$PLUGIN_DATA_DIR`):
 
 - `<PLUGIN_DATA_DIR>/about/identity.md`
 - `<PLUGIN_DATA_DIR>/about/voice.md`
 - `<PLUGIN_DATA_DIR>/about/workspace.md`
+- `<PLUGIN_DATA_DIR>/about/tracker-memory.md`
 
-**Content to write:** use the structure from `about/templates/`. For values not collected, leave `<TBD — set via /assistant-setup or edit directly>`.
+**Content to write:** use the structure from `about/templates/`. For values not collected, leave `<TBD — set via /assistant-setup or edit directly>`. For `tracker-memory.md`: always seed from `about/templates/tracker-memory.md.template` (blank observations section); never carry forward or merge content from the old `context/tracker-memory.md`.
 
 **Mode-specific behavior:**
 - **Default mode:** Read the existing file at the destination path first. Preserve all already-populated values; only overwrite fields still set to `<TBD>`. Produce a merged output.
@@ -269,6 +270,7 @@ Files written to <PLUGIN_DATA_DIR>/about/:
 - identity.md
 - voice.md
 - workspace.md
+- tracker-memory.md
 [- voice-scrape-samples.md  ← only if scraping ran]
 
 Voice profile: drafted from <n> Gmail + <n> Slack samples (or "from your direct answers" if scraping was skipped).
@@ -283,7 +285,7 @@ Surface anything where you had to assume defaults so the user can correct. If th
 ## Guardrails
 
 - **Never ask for retrievable values.** Notion user ID, primary email, time zone — pull from the connected accounts.
-- **Personal files only.** Only write to `<PLUGIN_DATA_DIR>/about/` (`identity.md`, `voice.md`, `workspace.md`) — the path discovered via the pointer file in Step 1. Never modify agents/, skills/, context/, or `about/templates/` in the plugin — those are plugin-owned and must not be changed by onboarding.
+- **Personal files only.** Only write to `<PLUGIN_DATA_DIR>/about/` (`identity.md`, `voice.md`, `workspace.md`, `tracker-memory.md`) — the path discovered via the pointer file in Step 1. Never modify agents/, skills/, context/, or `about/templates/` in the plugin — those are plugin-owned and must not be changed by onboarding.
 - **Voice scraping is opt-in.** Default behavior is to ask before reading the user's mail/Slack. Don't auto-scrape.
 - **Internal vs client-facing classification matters.** A user's voice is different per register — surface both, write voice.md accordingly.
 - **No PII leakage.** Don't quote actual customer email content in voice.md or in chat. Distill patterns ("user uses 'Best,' as default sign-off"), don't paste samples.

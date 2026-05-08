@@ -19,6 +19,8 @@ The Customer Tracker is a **shared workspace** with other PB AISEs (since May 20
 
 ## Ownership contract (mandatory, applies to every write)
 
+> _Derived from `context/notion-schema.md` § Ownership Model — that file is the authoritative source. If anything here conflicts with the schema, trust the schema and update this section._
+
 the user's Notion user ID: `<user-uuid>` (read at runtime from `about/identity.md`). Person values are written as `'["<user-uuid>"]'` and stored as `["user://<user-uuid>"]` on read. Filter with `LIKE '%<user-uuid>%'` to match either form.
 
 ### Per-DB on-create rules

@@ -30,6 +30,7 @@ Determine the target owner UUID:
 Then query:
 
 ```sql
+-- ID: see context/notion-schema.md — keep in sync
 SELECT url, Name, Customer, "Master Package", ARR,
        "date:Start Date:start", "date:End Date:start", Status, "Active?", "Current Account Owner"
 FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
@@ -149,17 +150,17 @@ A single customer may trigger multiple actions (e.g. rollover + ARR fill on the 
 ```
 notion-update-page:
   Active? = __NO__
-  Status  = Done
+  Status  = Package Expired
 ```
 
 **Step B — Create the new Active Package:**
 ```
-notion-create-pages in collection://29697e9c-7d4f-8031-9f76-000b7e932b36:
+notion-create-pages in collection://29697e9c-7d4f-8031-9f76-000b7e932b36:  -- ID: see context/notion-schema.md — keep in sync
   Name:                   "[year new contract starts]"
   Customer:               "[same Customer page URL as old package]"
   Master Package:         "[same Master Package URL as old package]"
   Active?:                __YES__
-  Status:                 Active      ← never "In progress" — API rejects that on create
+  Status:                 Activating  ← correct status for a live engagement starting up; never "In progress" — API rejects that on create
   date:Start Date:start:  [day after old End Date]
   date:Start Date:is_datetime: 0
   date:End Date:start:    [SF-derived end date]

@@ -144,6 +144,41 @@ For upgrading an existing install (your own machine or a teammate's), use `scrip
 
 ---
 
+## Path resolution: dev (repo root) vs installed
+
+This is the most common source of silent breakage during dev testing.
+
+**How it works when installed:**
+`session-start.sh` runs at the start of every Claude session, discovers the real persistent plugin data directory (e.g. `~/.claude/plugins/data/aise-assistant-*/`), and writes its path to `~/.claude/aise-assistant.datadir`. Every agent that needs personal files reads the path from that pointer file:
+
+```bash
+PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir")
+# → e.g. /Users/you/.claude/plugins/data/aise-assistant-abc123/
+```
+
+**What happens when running from the repo root:**
+`session-start.sh` still runs, but the hook's `$CLAUDE_PLUGIN_DATA` is a volatile temp path, not the installed data dir. Claude will read `about/identity.md` from the plugin root — which in the repo is the TBD template (`about/templates/identity.md.template` staged as `about/identity.md`). Any agent that filters Notion by the user's UUID or writes in the user's name will pick up `<TBD>` values and produce broken queries or corrupt records.
+
+**The `$CLAUDE_PLUGIN_DATA` env var is not usable.** It resolves to a volatile temp path in all contexts — including dev runs. Never use it directly. Always go through `~/.claude/aise-assistant.datadir`.
+
+**Dev workaround:** To run agents locally with real personal values, populate a local `about/` dir and override the pointer file:
+
+```bash
+echo "/path/to/your/populated/about-dir" > ~/.claude/aise-assistant.datadir
+```
+
+You can point this at the installed plugin's data directory, or at any directory containing populated `identity.md`, `voice.md`, and `workspace.md` files.
+
+---
+
+## Onboarding guard (session-start warning)
+
+`session-start.sh` checks whether `$PLUGIN_DATA_DIR/about/identity.md` still contains `<TBD` placeholder values and emits a warning to stderr if so. This fires on any fresh install or new-user scenario where `/assistant-setup` hasn't been run yet. It is harmless — the session proceeds normally — and disappears once setup is complete.
+
+**Personal files are gitignored** (`about/identity.md`, `about/voice.md`, `about/workspace.md`). The repo only ships their templates (`about/templates/*.md.template`). If you're testing a fresh-install flow, expect to see this warning in the session output until you run `/aise-assistant:assistant-setup`.
+
+---
+
 ## Testing a new package before distributing
 
 1. `bash scripts/package.sh` — build the `.plugin`

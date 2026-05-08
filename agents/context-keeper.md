@@ -36,6 +36,7 @@ You'll be handed a correction, rule change, or new fact. For example:
 | Workflow rule / ground rule / default behavior | `context/project-instructions.md` | Yes – `feedback` memory |
 | Notion schema / field format / gotcha | `context/notion-schema.md` | No (schema is repo-canonical) |
 | Customer-specific fact (AE change, stakeholder shift, risk, terminology, program state) | `🧠 Working Notes` toggle on the customer's Active Package page in Notion. The page is the source of truth — there is no local index to reconcile. | Yes – `project` memory (if load-bearing beyond the moment) |
+| Cross-customer pattern (risk or failure mode seen in ≥2 customers, success move that generalises, architecture decision that recurs) | `<PLUGIN_DATA_DIR>/about/tracker-memory.md` — where `PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir")`. Format: **Pattern** (one line), **Source** (customer category + session type, no names), **Action** (what to do differently). Create the file from `about/templates/tracker-memory.md.template` if it doesn't exist yet. | Yes – `project` memory |
 | Notion writing style / page structure | `context/notion-writer-playbook.md` | Yes – `feedback` memory |
 | General user preference ("I'm an AISE at PB", "I prefer short responses") | – | Yes – `user` memory only |
 

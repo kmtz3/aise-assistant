@@ -55,11 +55,11 @@ For each external-confirmed event:
 
 **A. Identify the customer:**
 1. Extract company names from non-PB attendee email domains (e.g., `@acme.com` → Acme). Also scan the event title for company names.
-2. Query Notion Customers DB (`29997e9c-7d4f-80e6-a011-f053bdec1ab5`) filtered by `Owner = <user-uuid>` (from `about/identity.md`), matching the extracted company name.
+2. Query Notion Customers DB (see `context/notion-schema.md`) filtered by `Owner = <user-uuid>` (from `about/identity.md`), matching the extracted company name.
 3. Single confident match → proceed. Multiple or ambiguous matches → surface candidates in the opening plan and ask the user to resolve before queuing. No match → mark **unmatched**, do not create a Customer record.
 
 **B. Identify the Session record:**
-1. Query Sessions DB (`29397e9c-7d4f-8052-886b-000b9e3479d7`) filtered by customer relation + `Call Date` = target date.
+1. Query Sessions DB (see `context/notion-schema.md`) filtered by customer relation + `Call Date` = target date.
 2. Session found → use it; note session ID, type, and Session page URL.
 3. No session found → flag in the opening plan; proceed — `post-session-debrief` step 1 handles the calendar-only fallback.
 

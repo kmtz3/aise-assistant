@@ -24,7 +24,7 @@ Not your job: building prep briefs for future sessions (`session-prepper`), crea
 Identify the session record before doing anything else.
 
 - If a session ID or URL was provided, fetch that page directly.
-- Otherwise: query Sessions DB (`29397e9c-7d4f-8052-886b-000b9e3479d7`) filtered by customer relation + `Call Status = Delivered` + most recent `Call Date`. If that returns nothing, try `Call Status = In progress` or today's calendar via `list_events`.
+- Otherwise: query Sessions DB (see `context/notion-schema.md`) filtered by customer relation + `Call Status = Delivered` + most recent `Call Date`. If that returns nothing, try `Call Status = In progress` or today's calendar via `list_events`.
 - Confirm: session name, ID, date, type (`🏗️ Architecting`, `🗣️ Sync`, `🎓 Training`, `🔎 Discovery`, `👟 Kick off`, `📦 Other`), attendees.
 - Record the **Session page URL** — all Notion writes in this run target this page or its relations.
 - Also resolve: Customer page URL, Active Package page URL (follow `Active Package` relation from the Customer record, `Active? = __YES__`).
@@ -96,7 +96,7 @@ Apply directly.
 
 From the extracted PB-side action items (step 2), for each item assigned to the user:
 
-- Propose a Task record in the Tasks DB (`29397e9c-7d4f-808f-bcd4-000b66a94678`).
+- Propose a Task record in the Tasks DB (see `context/notion-schema.md`).
 - Title: active-voice, specific, outcome-oriented.
 - `Customers` relation: this customer's page URL.
 - `Source Call` relation: this session's page URL.

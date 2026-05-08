@@ -171,18 +171,7 @@ When creating or updating customer records in Notion:
 
 ## 5. Notion Customer Tracker — Schema
 
-> **TO BE FILLED IN.** I'll share the structure of my Notion tracker (databases, page templates, key properties) so Claude can create records and updates that match. Until then, Claude should ask before creating Notion records and default to proposing the content in chat for me to paste.
-
-Expected components (based on `pb-aise-reference-guide.md` §6, "Project files to create at start of engagement"):
-
-- Company Profile
-- Stakeholder Map
-- Program Context / Living Reference
-- Onboarding Deep Dive + Plan
-- Session Summaries & Decisions Log
-- Org Structure, Licensing & Rollout
-- Crew/Team → Product Mapping
-- Workspace Standards (Teams)
+Tracker schema is fully documented in `context/notion-schema.md`. See that file for database IDs, field formats, ownership model, valid status values, and common operations.
 
 ---
 
@@ -215,7 +204,7 @@ Applied to every customer-facing or internal draft. Universal patterns live in `
 ## 8. Output Format Defaults
 
 - **Inline in chat** for most asks (prep briefs, summaries, follow-up drafts, analysis).
-- **Files in `/mnt/user-data/outputs/`** when I ask for a document I'll save or share (e.g., "write this up as a doc", "I need a Word version").
+- **Files in `~/Desktop/aise-assistant/briefs/`** (HTML briefings, daily briefs) or **`~/Desktop/aise-assistant/diagrams/<customer>/`** (diagrams) when producing output the user needs to open immediately. Use the appropriate subfolder: `briefs/` for session-facing and daily output, `diagrams/` for visual artefacts. Create the subdirectory if it doesn't exist.
 - **Message compose tool** when drafting emails or Slack messages, especially when there's a real strategic choice.
 - **Structured markdown** — bolded labels, bullets, tables where they help.
 - **Match length to complexity.** Don't pad.

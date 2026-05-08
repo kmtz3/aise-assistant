@@ -49,11 +49,11 @@ Companion to [`context/engagement-planning-guide.md`](../../context/engagement-p
 ```
 # [Session Name] — Template
 
-Session ID | Duration | Attendees | Prerequisites | Outputs
+Session ID | Duration | Attendees
 
 ## Purpose
-## Outcomes to drive
-## Pre-read / inputs needed
+## Outcomes to drive in-session
+## Pre-read / inputs needed from customer
 ## KDDs to facilitate
   ### Topic 1
     - Questions to ask

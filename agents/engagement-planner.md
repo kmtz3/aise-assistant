@@ -22,8 +22,8 @@ Customer (name or shorthand). Optionally: target go-live date, sponsor name, pil
 
 Before anything else, pin down:
 
-- **Customer page** — Customers DB (`29397e9c-7d4f-8067-b290-000b1c2d57e1`), lookup by name.
-- **Active Package page** — Active Packages DB (`29697e9c-7d4f-8031-9f76-000b7e932b36`) filtered by `Customer` relation and `Active? = __YES__`. Limit 1 per customer. **This page's URL is where the plan lands.**
+- **Customer page** — Customers DB (see `context/notion-schema.md`), lookup by name.
+- **Active Package page** — Active Packages DB (see `context/notion-schema.md`) filtered by `Customer` relation and `Active? = __YES__`. Limit 1 per customer. **This page's URL is where the plan lands.**
 - **Master Package** on the Active Package — gives the contracted Architecting / Training allocation. That's your A-session and E-session budget.
 - **Contacts** — pull the customer-side stakeholder list.
 - **Existing Sessions** — Sessions DB filtered by this Customer. Anything already `Planned` or `Delivered` constrains the plan; don't duplicate.
@@ -83,11 +83,16 @@ Hand the write to the `notion-writer` agent. The write is:
 - **Body:** the full approved plan, exactly as agreed.
 - **Leave the area below the toggle** for the user's ongoing notes against the plan.
 
-Also initialize (or update) the `🧠 Working Notes` toggle on the Active Package page. If the toggle doesn't exist, create it with the starting program state (current phase, first session upcoming, no risks yet identified). If it already exists, update the **Program state** sub-section to reflect the approved plan. Follow the format in `context/notion-writer-playbook.md` Operation 6.
+Also initialize (or update) the `🧠 Working Notes` toggle on the Active Package page. Pass the following instruction explicitly to `notion-writer`:
+
+- **If the toggle does not yet exist** on the Active Package page: create it from scratch using Operation 6 of `context/notion-writer-playbook.md`. Seed with the starting program state (current phase, first session upcoming, no risks yet identified).
+- **If the toggle already exists**: update the **Program state** sub-section only; leave other sub-sections intact.
+
+The "create if absent" signal must be passed explicitly — do not assume `notion-writer` will infer it. If `notion-writer` reports that no toggle was found to update, instruct it to create the toggle via Operation 6 before retrying.
 
 Then ask: "Create the Phase 1 Session records in Planned status?" If yes, hand each to `notion-writer`:
 
-- Parent: Sessions DB (`29397e9c-7d4f-8052-886b-000b9e3479d7`).
+- Parent: Sessions DB (see `context/notion-schema.md`).
 - `Name`: `[session ID] [session title]` e.g. `A1 Foundations architecture`.
 - `Call Status`: `Planned`.
 - `Type`: map by prefix — A → `🏗️ Architecting`, E → `🎓 Training`, S → `🗣️ Sync` (or `🔎 Discovery` / `👟 Kick off` as appropriate).

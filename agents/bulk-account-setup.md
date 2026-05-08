@@ -36,6 +36,7 @@ Read `about/identity.md`:
 ### 2. Query all customers owned by the target user
 
 ```sql
+-- ID: see context/notion-schema.md — keep in sync
 SELECT * FROM "collection://29397e9c-7d4f-8067-b290-000b1c2d57e1"
 WHERE Owner LIKE '%<target_uuid>%'
 ORDER BY Customer ASC
@@ -52,6 +53,7 @@ For each customer, run these two lookups simultaneously:
 **A. Active Package check**
 
 ```sql
+-- ID: see context/notion-schema.md — keep in sync
 SELECT * FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
 WHERE Customer LIKE '%<customer-page-id>%'
 ```

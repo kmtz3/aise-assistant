@@ -20,7 +20,7 @@ Customer (name or shorthand). Optional: session ID (e.g. `A1`), session type, or
 
 ### 1. Resolve the session
 
-- Query the Sessions DB (`29397e9c-7d4f-8052-886b-000b9e3479d7`) filtered by customer relation + `Type = 🏗️ Architecting` + `Call Status = Planned`. Or fetch the URL if the user gave one.
+- Query the Sessions DB (see `context/notion-schema.md`) filtered by customer relation + `Type = 🏗️ Architecting` + `Call Status = Planned`. Or fetch the URL if the user gave one.
 - Pull: Session ID (from title, e.g. `A1`), Session Name, Date, Duration (`Session Length (h)`), attendees.
 - Confirm it's an **architecting** session. If it's `🗣️ Sync`, `🎓 Training`, `🔎 Discovery`, `👟 Kick off`, stop and tell the user — the customer-facing KDD doc is only for A-sessions.
 
@@ -51,7 +51,6 @@ Seed the starter examples from real data, not invention:
 - **Prior Session pages** for this customer — decisions captured in earlier A-sessions.
 - **Glean** — discovery notes, Gong transcripts from discovery/scoping calls, Slack threads.
 - **Calendar** — confirm attendees.
-- **🧠 Working Notes toggle on the Active Package page** — prior-chat notes on this customer (the SSOT for per-customer state in Notion).
 
 Capture concretely: their tribe/BU/crew naming, pilot team, current tool stack, named stakeholders, any terminology they consistently use.
 
@@ -65,7 +64,7 @@ Follow the **Customer-facing KDD doc → Required structure** spec in [`template
 - **Outcome:** rewrite the template's `Outcomes to drive` in plain customer voice: "we will have decided / aligned / documented …".
 - **Action items:** empty table with headers `# | Owner | Action | Due` — live capture during the close.
 - **Key Design Decisions:** one block per KDD in the template. For each:
-  - `### D#. [Topic]` — continue the D-numbering from the customer's existing decisions register. If the latest is `D17`, the first KDD in this session is `D18`.
+  - `### D#. [Topic]` — continue the D-numbering from the customer's existing decisions register. If the latest is `D17`, the first KDD in this session is `D18`. If no prior D-register exists (new customer or no prior A-sessions), start from `D1`.
   - `**Question:**` — one-line distillation of the template's `Questions to ask`.
   - `**Starter example — react to this, not decide from it:**` table — seed 1–2 rows per the sourcing rules below.
   - `**Decision (captured live):**` table — same columns, blank.
@@ -106,6 +105,6 @@ Post:
 - **Don't invent** stakeholder names, team structure, pilot scope, or prior decisions. Cite or leave blank.
 - **Starter examples are examples**, never decisions. Label them visibly every time.
 - **Internal content stays internal.** Red flags, rebuttals, scorecard dimensions, facilitator notes — none of those go into the customer-facing sub-page.
-- **D-numbers continue the register.** Fetch the latest `D#` from the customer's Active Package decisions log before assigning new numbers.
+- **D-numbers continue the register.** Fetch the latest `D#` from the customer's Active Package decisions log before assigning new numbers. If no prior register exists, start from `D1`.
 - **Don't overwrite.** If a `KDDs — …` sub-page already exists for this session, ask the user before replacing — she may have edits in flight.
 - **Customer confidentiality.** Nothing about the doc leaves Notion / chat without authorization.

@@ -63,6 +63,8 @@ Three roles cover every account. Each is assigned per account independently — 
 
 ## 2. What Good Looks Like — Session-by-Session (Scorecard Standards)
 
+> **Summary only** — see `context/score-cards.md` for full rubrics and 0–5 scoring definitions.
+
 Each session is scored 0–5 per dimension. The overall framing principle across all sessions: **you are running a design/decision workshop, not a feature demo.** That distinction is the foundation of every high score.
 
 ---
@@ -508,6 +510,7 @@ These are blockers — you can't design the workspace without them:
 | **Legacy feedback tool renewal reduces urgency** | 🟡 | Deprioritize migration. Focus on building the right process in PB first; migration can follow. Don't let this become a blocker or a distraction. |
 | **Roadmap as single monolithic view** | 🟠 | Surface the persona problem early in the roadmap session. "One roadmap for everyone" always disappoints everyone. Push toward a portfolio of 2–5 views from the start. |
 | **Discovery ends without synthesis** | 🔴 | Score killer. Build synthesis + gap identification + setup implications into the session agenda — not as an afterthought. Get customer confirmation before closing. |
+| **Artefacts not gathered before discovery** | 🟠 | Chase artefacts at kickoff with explicit named owners and due dates. Don't run discovery blind. |
 
 ---
 
@@ -525,4 +528,3 @@ Productboard uses a standard two-channel pattern per customer. These names are o
 **Coverage caveat:** Not every customer has dedicated Slack channels. When channels are absent, default to follow-up emails per the communication style guide.
 
 Before posting, search Slack for `accounts-{customer}` and `ext-{customer}` to confirm the channels exist. If neither exists, route all follow-up through Gmail.
-| **Artefacts not gathered before discovery** | 🟠 | Chase artefacts at kickoff with explicit named owners and due dates. Don't run discovery blind. |

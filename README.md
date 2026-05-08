@@ -108,7 +108,7 @@ If these aren't already configured, `/assistant-setup` will surface a reminder.
 - **Owner-filter every Notion read** — the workspace is shared across AISEs. Customers query by `Owner`; Active Packages / Sessions / Tasks query by `Current Account Owner` (with `Delivered By` for Sessions and `Owner` for Tasks).
 - **Pre-create dedup check** for every Task and Session before write.
 - **Tasks must always have `Customers` set** — internal/non-customer tasks point to the Productboard customer record.
-- **Notion is SSOT** for active engagements; `tracker-memory.md` stores cross-customer observations only.
+- **Notion is SSOT** for active engagements; `<PLUGIN_DATA_DIR>/about/tracker-memory.md` stores cross-customer observations (per-user, not in the plugin repo).
 - **Communication style** — universal in `context/communication-style-guide.md`, personal overlay wins via `about/voice.md`.
 
 ## Maintainer
