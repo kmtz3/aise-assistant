@@ -111,7 +111,7 @@ Filter queries with `<field> LIKE '%<bare-uuid>%'` so they match the stored form
 - Set `Customer` (limit 1) and `Master Package` (limit 1) on create
 - `Active?` = `__YES__` for current live package
 - **`Current Account Owner`** — set to the current user on create (`["<user-uuid>"]`). The Resync button on the Customer page keeps this in sync afterwards, but on initial create the button hasn't fired, so set it explicitly.
-- `Status` options: `Contracted below PS`, `Not started`, `Preparing`, `Activating`, `Adopting`, `Unassigned`, `Package Expired`, `Service Quota Used`
+- `Status` options: `Not started`, `Renewal`, `Preparing`, `Activating`, `Adopting`, `Package Expired`, `Service Quota Used`
 - **`Status = Service Quota Used` ≠ inactive.** It means all contracted architecting and training sessions are exhausted. The customer retains AISE ownership; recurring syncs and QBRs continue. No new architecting or training unless they purchase more. When you see `Status = Service Quota Used` with `Active? = YES`, treat as **post-services / sync-rhythm** mode, not wind-down. Do not flag this as a contradiction unless the package is also `Active? = NO` and there's no upcoming sync cadence. **`Package Expired` is the only true terminal state** — contract end date passed; flip `Active? = NO`.
 
 ### Create a Task (PB-side actions only)
@@ -220,7 +220,7 @@ Use just `Owner` for "tasks I logged" (the creator-only filter). Use just `Curre
 
 | Field | Type | Valid values / notes |
 |---|---|---|
-| `Name` | title | e.g. `2025 · Essential Services` |
+| `Name` | title | Format: `{Year} – {Customer Name} \| {Master Package}` e.g. `2025 – Acme Corp \| Essential Services` |
 | `Customer` | relation | → Customers DB |
 | `Master Package` | relation (limit 1) | → Master Packages DB |
 | `ARR` | number | Dollar value — ACV/annual (never divide by contract length) |
@@ -251,7 +251,7 @@ Use just `Owner` for "tasks I logged" (the creator-only filter). Use just `Curre
 |---|---|---|
 | `Name` | title | Session name (typically `<Customer> — <Session ID> <Topic>` or close) |
 | `Customers` | relation (limit 1) | → Customers DB |
-| `Consumed Package` | relation | → Active Packages DB. Drives credit burn. |
+| `Consumed Package` | relation | → Active Packages DB. Drives credit burn. **Date-matching rule:** only assign an Active Package whose `Start Date` ≤ session's `Call Date` ≤ `End Date`. If the current `Active? = YES` package does not cover the session date, look for an older inactive package for the same customer whose date range does. If no package's date range covers the session date, leave this field empty. Never assign by recency alone. |
 | `Type` | select | `🏗️ Architecting`, `🗣️ Sync`, `🎓 Training`, `👟 Kick off`, `🔎 Discovery`, `📦 Other` |
 | `Call Status` | status | `Not started`, `Planned`, `Postponed`, `Follow-up email`, `In progress`, `Canceled`, `Delivered` |
 | `Call Date` | date | Date triples format |
@@ -366,6 +366,13 @@ Task
 
 When writing a prep brief for a session:
 1. Find the Session page in Notion (by customer + date). If it doesn't exist, create it first (`Status = Planned`).
-2. Append the prep brief inside a **collapsible toggle heading** named e.g. `📋 Prep — [YYYY-MM-DD]` at the top of the session page body.
+2. Append the prep brief inside a **collapsible toggle heading** at the top of the session page body. Exact Notion-flavored markdown format:
+   ```
+   ## 📋 Prep — YYYY-MM-DD {toggle="true"}
+   [TAB]paragraph text
+   [TAB]**Bold header**
+   [TAB]- bullet
+   ```
+   Children must be tab-indented (`\t`). For sub-bullets under a numbered list item, use two tabs. **Never use `>` blockquote prefix** — each `>` renders as a separate quote block with a left border.
 3. Leave the area below the toggle for the user's real session notes.
 4. If the session is purely prep (no customer call), name the page `[PREP] …` and set `Do not count = __YES__`.

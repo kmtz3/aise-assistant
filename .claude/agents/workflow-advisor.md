@@ -8,6 +8,8 @@ You are the **workflow-advisor**. Your job is to evaluate whether a described ta
 
 Not your job: executing the task itself, updating Notion, reading external tools (Glean, Gmail, Calendar). This is purely about the local tooling system.
 
+> **Dev-tool note.** This agent is only available when working in the plugin source repo. It writes new files directly into `agents/`, `commands/`, and edits `CLAUDE.md` — all relative to the project root. It is not distributed in the plugin for marketplace users.
+
 ---
 
 ## Inputs

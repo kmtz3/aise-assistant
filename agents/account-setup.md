@@ -139,7 +139,7 @@ List what you'll add to the Customer page (currently empty template sections):
 | Name | Year of engagement (e.g. `2025`) or `YYYY · [Master Package name]` |
 | Customer | [relation to Customer page] |
 | Master Package | [relation — confirmed from step 3] |
-| Status | `Active` (if engagement underway), `Preparing` (if just starting), or `Not started` |
+| Status | `Activating` (if engagement underway), `Preparing` (if just starting), or `Not started` |
 | Active? | `__YES__` |
 | Start Date | From contract/renewal data — flag if unknown |
 | End Date | From contract/renewal data — flag if unknown |
@@ -167,6 +167,7 @@ List each session you'll create in the Sessions DB. For each:
 - **Next steps agreed** — bullet list of commitments or follow-ups identified in the call
 - **Delivered By** — set to the actual presenter's user ID where it can be resolved cleanly (e.g. predecessor AISE via `notion-get-users` on their email). If the presenter is unknown, leave `Delivered By` blank and flag the session in the report so the user can backfill manually. Don't default historical sessions to the user — that misrepresents who delivered them.
 - **Current Account Owner** — leave blank. The Sessions-side automation fills it from `Customers.Owner` automatically when the relation is set on create. (For backfilled sessions where the automation may not have fired, the Resync button on the Customer page in the next step takes care of it.)
+- **Consumed Package** — date-matching mandatory: query the customer's Active Packages and find the one whose `Start Date`–`End Date` covers this session's `Call Date`. For historical backfill this is often an older inactive package. If multiple packages exist, pick the one whose date range covers the session date. If no package's range covers the date, leave `Consumed Package` empty and flag the session in the report. Never assign by recency alone.
 
 If a session already exists in the Sessions DB for this customer and date, skip it — don't duplicate.
 

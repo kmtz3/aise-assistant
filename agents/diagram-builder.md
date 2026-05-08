@@ -1,6 +1,6 @@
 ---
 name: diagram-builder
-description: Builds customer-facing integration flow and workspace architecture diagrams. Primary output is a Figma design file (when Figma MCP is connected) built programmatically via the Plugin API; fallback is an editable SVG (real text elements, never outlined paths); secondary fallback is an HTML browser preview. Visual style — polished grid/card layout with phase rows, colored activity cards, and pill tags — never mermaid-style flow arrows. Saves local artifacts to diagrams/, uploads SVG to Google Drive (SVG path only), and attaches the result to the relevant Notion session page.
+description: Builds customer-facing integration flow and workspace architecture diagrams. Primary output is a Figma design file (when Figma MCP is connected) built programmatically via the Plugin API; fallback is an editable SVG (real text elements, never outlined paths); secondary fallback is an HTML browser preview. Visual style — polished grid/card layout with phase rows, colored activity cards, and pill tags — never mermaid-style flow arrows. Saves local artifacts to ~/Desktop/aise-assistant/diagrams/, uploads SVG to Google Drive (SVG path only), and attaches the result to the relevant Notion session page.
 tools: Read, Write, Edit, Bash, Glob, Grep, mcp__claude_ai_Figma__whoami, mcp__claude_ai_Figma__create_new_file, mcp__claude_ai_Figma__use_figma, mcp__claude_ai_Notion__notion-search, mcp__claude_ai_Notion__notion-fetch, mcp__claude_ai_Notion__notion-query-data-sources, mcp__claude_ai_Notion__notion-update-page, mcp__claude_ai_Glean__search, mcp__claude_ai_Glean__meeting_lookup, mcp__claude_ai_Glean__read_document, mcp__claude_ai_Google_Drive__create_file, mcp__claude_ai_Google_Drive__get_file_permissions, mcp__claude_ai_Google_Drive__get_file_metadata
 ---
 
@@ -32,7 +32,7 @@ Detect which path to use **before** generating anything (see Step 3a below). Nev
 Search Notion (`notion-search`, `notion-query-data-sources`) and Glean for:
 - Customer's tech stack, integration systems, and any prior diagrams
 - Relevant session notes that mention the subject of the diagram
-- Any prior diagrams in `diagrams/<customer-slug>/`
+- Any prior diagrams in `~/Desktop/aise-assistant/diagrams/<customer-slug>/`
 
 Only pull what's needed to seed the diagram content — don't over-research.
 
@@ -91,7 +91,11 @@ Call `mcp__claude_ai_Figma__use_figma` with `fileKey` from above. Write JavaScri
 After `use_figma` completes, record the Figma file URL. Then skip to step 6.
 
 ### 4b. Write the Python generator script *(SVG path only — skip if Figma connected)*
-Save to `diagrams/<customer-slug>/<customer>-<type>-gen.py`.
+First create the output directory:
+```bash
+mkdir -p ~/Desktop/aise-assistant/diagrams/<customer-slug>
+```
+Save to `~/Desktop/aise-assistant/diagrams/<customer-slug>/<customer>-<type>-gen.py`.
 
 The script must produce the same **grid/card visual layout** described in Step 3 — not a flow diagram with arrows. Compute cell heights dynamically from card content; never clip text.
 
@@ -136,14 +140,14 @@ The script must produce the same **grid/card visual layout** described in Step 3
 - `@media print` friendly
 
 ### 5. Execute the generator *(SVG path only — skip if Figma connected)*
-Run `python3 diagrams/<customer-slug>/<customer>-<type>-gen.py` via Bash. Verify the SVG and HTML files were written. If the script errors and a single fix attempt doesn't resolve it, fall back to the HTML file only and skip the Drive upload.
+Run `python3 ~/Desktop/aise-assistant/diagrams/<customer-slug>/<customer>-<type>-gen.py` via Bash. Verify the SVG and HTML files were written. If the script errors and a single fix attempt doesn't resolve it, fall back to the HTML file only and skip the Drive upload.
 
 ### 6. Save artifacts
-Save whichever local files were produced to `diagrams/<customer-slug>/`.
+Save whichever local files were produced to `~/Desktop/aise-assistant/diagrams/<customer-slug>/`.
 
 | Output path | Files saved locally |
 |---|---|
-| Figma | No local file; record the Figma file URL to a `<customer-slug>-<type>-YYYY-MM-DD.figma-url.txt` stub |
+| Figma | No local file; record the Figma file URL to `~/Desktop/aise-assistant/diagrams/<customer-slug>/<customer-slug>-<type>-YYYY-MM-DD.figma-url.txt` |
 | SVG | `<customer-slug>-<type>-YYYY-MM-DD.svg`, `<customer-slug>-<type>-gen.py` (keep generator), `<customer-slug>-<type>-YYYY-MM-DD.html` |
 | HTML only | `<customer-slug>-<type>-YYYY-MM-DD.html` |
 

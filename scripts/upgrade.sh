@@ -1,24 +1,29 @@
 #!/usr/bin/env bash
 # upgrade.sh — Safe upgrade script for aise-assistant plugin.
 #
-# Copies plugin-owned files from a new version while preserving personal about/
-# files the user has already populated (no <TBD placeholders remaining).
+# Copies plugin-owned files from a new version. Personal about/ files live at
+# $CLAUDE_PLUGIN_DATA/about/ and are never touched by this script (except for the
+# one-time migration from legacy paths).
 #
 # Usage:
 #   ./scripts/upgrade.sh --source <path-to-new-version-dir>
 #   ./scripts/upgrade.sh --check   (just audit current state, no writes)
 #
-# Plugin-owned (always replaced):  about/README.md, about/templates/
-# Personal (preserved if populated): about/identity.md, about/voice.md, about/workspace.md
-#
-# A file is considered "populated" if it exists and contains no occurrence of <TBD.
-# Any file that still has <TBD (i.e. was never filled in) is safe to overwrite.
+# Plugin-owned (always replaced):  about/README.md, about/templates/, agents/, commands/, etc.
+# Personal (never touched):        $CLAUDE_PLUGIN_DATA/about/identity.md, voice.md, workspace.md
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_DIR="$(dirname "$SCRIPT_DIR")"
-ABOUT_DIR="$PLUGIN_DIR/about"
+# Read the persistent data dir from the pointer file written by the SessionStart hook.
+# Fall back to ls-based discovery when run outside a Claude session (e.g. CI, manual upgrade).
+PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir" 2>/dev/null || true)
+if [[ -z "$PLUGIN_DATA_DIR" ]]; then
+  PLUGIN_DATA_DIR=$(ls -d "$HOME/.claude/plugins/data/aise-assistant"* 2>/dev/null | head -1)
+  PLUGIN_DATA_DIR="${PLUGIN_DATA_DIR:-$HOME/.claude/plugins/data/aise-assistant}"
+fi
+ABOUT_DIR="$PLUGIN_DATA_DIR/about"
 
 PERSONAL_FILES=("identity.md" "voice.md" "workspace.md")
 
@@ -63,15 +68,15 @@ is_populated() {
 
 # --- check mode ---
 if [[ "$CHECK_ONLY" == true ]]; then
-  echo "aise-assistant about/ file state:"
+  echo "aise-assistant personal file state ($ABOUT_DIR):"
   for f in "${PERSONAL_FILES[@]}"; do
     target="$ABOUT_DIR/$f"
     if is_populated "$target"; then
-      echo "  ✓ $f — populated (would be preserved on upgrade)"
+      echo "  ✓ $f — populated (safe — lives outside plugin, survives updates)"
     elif [[ -f "$target" ]]; then
-      echo "  ○ $f — exists but unpopulated (would be overwritten on upgrade)"
+      echo "  ○ $f — exists but unpopulated (run /assistant-setup to fill in)"
     else
-      echo "  ✗ $f — missing (would be created from template on upgrade)"
+      echo "  ✗ $f — missing (run /assistant-setup to create)"
     fi
   done
   exit 0
@@ -85,34 +90,39 @@ CREATED=()
 echo "aise-assistant upgrade — source: $SOURCE_DIR"
 echo ""
 
-# 1. Personal files: preserve if populated, otherwise restore from new source
+# 1. Migrate personal files from legacy paths (one-time, idempotent).
+LEGACY_PATHS=(
+  "$HOME/Library/Application Support/aise-assistant/about"
+  "$HOME/.claude/aise-assistant/about"
+)
+if [[ ! -f "$ABOUT_DIR/identity.md" ]]; then
+  for old in "${LEGACY_PATHS[@]}"; do
+    if [[ -d "$old" ]]; then
+      mkdir -p "$ABOUT_DIR"
+      mv "$old"/*.md "$ABOUT_DIR/" 2>/dev/null || true
+      echo "  ↗ Migrated personal files from $old to $ABOUT_DIR"
+      break
+    fi
+  done
+fi
+
+# 2. Personal files live at $ABOUT_DIR — never touched by upgrade beyond migration above
+echo "  Personal files ($ABOUT_DIR) — skipped (outside plugin, always safe)"
 for f in "${PERSONAL_FILES[@]}"; do
   target="$ABOUT_DIR/$f"
-  src_template="$SOURCE_DIR/about/templates/${f%.md}.md.template"
-  src_file="$SOURCE_DIR/about/$f"
-
   if is_populated "$target"; then
     PRESERVED+=("$f")
-    echo "  ✓ $f — populated, preserved (skipped)"
+    echo "    ✓ $f — populated"
+  elif [[ -f "$target" ]]; then
+    echo "    ○ $f — exists but unpopulated (run /assistant-setup to fill in)"
   else
-    # prefer the template from the new version; fall back to the source about/ file
-    if [[ -f "$src_template" ]]; then
-      cp "$src_template" "$target"
-      RESTORED+=("$f")
-      echo "  → $f — unpopulated, restored from new template"
-    elif [[ -f "$src_file" ]]; then
-      cp "$src_file" "$target"
-      RESTORED+=("$f")
-      echo "  → $f — unpopulated, copied from new source"
-    else
-      echo "  ⚠ $f — no source found; left unchanged"
-    fi
+    echo "    ✗ $f — missing (run /assistant-setup to create)"
   fi
 done
 
 echo ""
 
-# 2. Plugin-owned files: always overwrite
+# 3. Plugin-owned files: always overwrite
 echo "  Updating plugin-owned files..."
 
 # about/README.md
@@ -142,7 +152,7 @@ done
 echo ""
 echo "─────────────────────────────────────────────────"
 
-# 3. Summary + post-upgrade notice
+# 4. Summary + post-upgrade notice
 if [[ ${#PRESERVED[@]} -gt 0 ]]; then
   preserved_list=$(IFS=', '; echo "${PRESERVED[*]}")
   echo ""

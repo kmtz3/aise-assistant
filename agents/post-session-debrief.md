@@ -76,6 +76,7 @@ Then update the Session record properties:
 - `Call Status` → `Delivered`
 - `Delivered By` → set to the actual presenter(s). For sessions led by the user: `["<user-uuid>"]`. For co-presented or stand-in calls, list everyone who delivered.
 - `Next Steps` field — set to the 1-3 highest-priority next actions (PB-side, declarative format).
+- `Consumed Package` → apply the date-matching rule: assign the Active Package whose `Start Date`–`End Date` covers this session's `Call Date`. If the current `Active? = YES` package does not cover the date, query the customer's packages for an older one that does. If none cover the date, leave the field empty. Never assign by recency alone.
 - Do **not** write to `Current Account Owner` — it's auto-maintained from `Customers.Owner` by the Sessions automation + Customer Resync button. Treat as derived.
 
 Follow `context/notion-schema.md` for all field formats. Write directly — no approval step.

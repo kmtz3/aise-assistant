@@ -4,9 +4,11 @@ You are helping a **Productboard AI Success Engineer (AISE)** (post-sales) run c
 
 This file is always loaded. Keep it short — it points at the detail.
 
-**Personal layer.** Anything user-specific (name, Notion user ID, voice, sign-offs, language preferences, workspace specifics) lives in [`about/`](about/). Read those files before producing anything on the user's behalf. If the `about/` files have placeholder values, prompt the user to run `/assistant-setup`.
+**Personal layer.** Anything user-specific (name, Notion user ID, voice, sign-offs, language preferences, workspace specifics) lives in `<PLUGIN_DATA_DIR>/about/` — outside the plugin directory, persisting across plugin updates. **Note:** this directory is deleted on plugin uninstall; re-run `/assistant-setup` after a full reinstall. Read those files before producing anything on the user's behalf. If the files have placeholder values or are missing, prompt the user to run `/assistant-setup`.
 
-**Address the user by name.** In chat output, refer to the user by the `Display name` (or informal first name) from [`about/identity.md`](about/identity.md), not as "the user" or "you" alone. Use it naturally where it lands — opening a message, calling out an action item, or surfacing a question — but don't force it. Agent spec files use generic language ("the user") so they work for any installer; the personalized address is a runtime behavior.
+> **Path resolver.** The `$CLAUDE_PLUGIN_DATA` shell env var resolves to a volatile temp path in all contexts — do not use it to locate personal files. The `SessionStart` hook discovers the real persistent directory and writes it to `~/.claude/aise-assistant.datadir` at the start of every session. To get the correct path in any Bash or osascript call: `PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir")`. In file references throughout this document, `<PLUGIN_DATA_DIR>` means that resolved path. The plugin's own `about/` directory (at the plugin root) contains only templates and a README — never personal data.
+
+**Address the user by name.** In chat output, refer to the user by the `Display name` (or informal first name) from `<PLUGIN_DATA_DIR>/about/identity.md`, not as "the user" or "you" alone. Use it naturally where it lands — opening a message, calling out an action item, or surfacing a question — but don't force it. Agent spec files use generic language ("the user") so they work for any installer; the personalized address is a runtime behavior.
 
 ---
 
@@ -16,11 +18,13 @@ Read these when the task touches their subject. Don't duplicate their content he
 
 ### Per-user (always read first when user values are needed)
 
+> **Finding these files:** `<PLUGIN_DATA_DIR>` is the path in `~/.claude/aise-assistant.datadir` (written by the SessionStart hook). In Bash: `PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir")`. In Cowork osascript: derive via `cat "$HOME/.claude/aise-assistant.datadir"` inside the shell script.
+
 | File | When to read |
 |---|---|
-| [about/identity.md](about/identity.md) | Name, Notion user ID, email, role, time zone. **Read for any agent that filters Notion by user, writes drafts in the user's voice, or references the user by name.** |
-| [about/voice.md](about/voice.md) | Personal communication preferences: sign-offs, em-dash rule, semicolons, English variant, casual register, forbidden filler words. Overlays the universal style guide. |
-| [about/workspace.md](about/workspace.md) | Workspace-specific context: conferencing tool, Calendly links, Slack channel patterns, internal coordinators. |
+| `<PLUGIN_DATA_DIR>/about/identity.md` | Name, Notion user ID, email, role, time zone. **Read for any agent that filters Notion by user, writes drafts in the user's voice, or references the user by name.** |
+| `<PLUGIN_DATA_DIR>/about/voice.md` | Personal communication preferences: sign-offs, em-dash rule, semicolons, English variant, casual register, forbidden filler words. Overlays the universal style guide. |
+| `<PLUGIN_DATA_DIR>/about/workspace.md` | Workspace-specific context: conferencing tool, Calendly links, Slack channel patterns, internal coordinators. |
 
 ### Universal (apply to any user)
 
@@ -49,37 +53,24 @@ Read these when the task touches their subject. Don't duplicate their content he
 - **Preserve the user's decisions** when rewriting their drafts.
 - **Flag conflicts** between sources instead of silently picking one.
 - **Customer confidentiality.** Never exfil customer names / deal sizes / sensitive detail to external artefacts without explicit authorization.
-- **Owner-filter every Notion read.** The Customer Tracker workspace is shared with other PB AISEs. Two ownership fields are in play after the May 2026 revamp: **`Owner`** lives on Customers (canonical) and Tasks (creator). **`Current Account Owner`** lives on Active Packages, Sessions, Tasks — auto-mirrors `Customer.Owner` via the Resync button + Sessions automation. Filter rules: Customers query by `Owner`; Active Packages query by `Current Account Owner`; Sessions query by `Current Account Owner` OR `Delivered By` (catches stand-in delivery); Tasks query by `Owner` OR `Current Account Owner` (catches inherited tasks). The user's Notion user ID is in [`about/identity.md`](about/identity.md) — read it before constructing any filtered query. Single-customer workflows must verify `Customer.Owner` contains the current user before continuing; if it doesn't, surface the conflict. Full schema in `context/notion-schema.md`.
+- **Owner-filter every Notion read.** The Customer Tracker workspace is shared with other PB AISEs. Two ownership fields are in play after the May 2026 revamp: **`Owner`** lives on Customers (canonical) and Tasks (creator). **`Current Account Owner`** lives on Active Packages, Sessions, Tasks — auto-mirrors `Customer.Owner` via the Resync button + Sessions automation. Filter rules: Customers query by `Owner`; Active Packages query by `Current Account Owner`; Sessions query by `Current Account Owner` OR `Delivered By` (catches stand-in delivery); Tasks query by `Owner` OR `Current Account Owner` (catches inherited tasks). The user's Notion user ID is in `<PLUGIN_DATA_DIR>/about/identity.md` — read it before constructing any filtered query. Single-customer workflows must verify `Customer.Owner` contains the current user before continuing; if it doesn't, surface the conflict. Full schema in `context/notion-schema.md`.
 - **Dedup before create.** Before creating any Task or Session, check whether one already exists where Owner contains the current user and the candidate is a match (Tasks: same Customer + similar title + open status, or same `Source Call` + similar title; Sessions: same Customer + same date ±1 day + same Type). If a match is found, skip the create and link the existing record. Full criteria in `agents/notion-writer.md` §Pre-create dedup check.
 
 ---
 
 ## Install / upgrade
 
-When installing or upgrading the plugin, **personal `about/` files must be preserved** if the user has already populated them.
+Personal files (`identity.md`, `voice.md`, `workspace.md`) live at `${CLAUDE_PLUGIN_DATA}/about/` — the plugin's persistent data directory. Persists across plugin updates. **Deleted on uninstall** — re-run `/assistant-setup` after a full reinstall.
 
-**Preservation rule.** Before writing any file into `about/`, check:
+The plugin's own `about/` directory contains only `README.md` and `templates/` — both plugin-owned and always safe to overwrite.
 
-| File | Rule |
-|---|---|
-| `about/identity.md` | Skip if it exists **and** contains no `<TBD` anywhere |
-| `about/voice.md` | Same |
-| `about/workspace.md` | Same |
-| `about/README.md` | Always overwrite — plugin-owned |
-| `about/templates/*` | Always overwrite — plugin-owned |
+**Fresh install** (no personal files exist): `/assistant-setup` creates the directory and writes the files there. Prompt the user to run it on first install.
 
-A file that still contains `<TBD` has never been fully filled in and is safe to overwrite with the new template. A file with no `<TBD` occurrences has been populated by the user and must be preserved.
+**After a marketplace update or reinstall**: personal files are untouched. No preservation check needed.
 
-**For Claude-managed upgrades** (where Claude is copying new plugin files): run the preservation check inline before touching `about/`. Do not blindly overwrite.
+**Migration from older installs:** If files exist at `~/Library/Application Support/aise-assistant/about/` or `~/.claude/aise-assistant/about/` (legacy paths), the `SessionStart` hook migrates them automatically on the first session after reinstall.
 
-**For shell-based upgrades**: run `scripts/upgrade.sh --source <path-to-new-version>`. It applies the same rule, copies all plugin-owned files, and skips populated personal files. Pass `--check` first to audit current state without writing anything.
-
-**After upgrade, if personal files were preserved**, surface this notice in chat:
-
-> Personal about/ files detected and preserved (identity.md, voice.md, workspace.md).  
-> Run `/assistant-setup --update` to check for drift against your updated role or preferences.
-
-**Fresh install** (no personal files exist): proceed normally — copy templates into `about/` and prompt the user to run `/assistant-setup`.
+**To fully clean up or reset**: uninstall the plugin (this deletes `${CLAUDE_PLUGIN_DATA}` automatically), or delete `${CLAUDE_PLUGIN_DATA}/` manually.
 
 ---
 
@@ -132,7 +123,7 @@ Grouped by family. Type `/<family>-` in autocomplete to see siblings.
 | `/assistant-setup [--scrape-voice] [--reset]` | Onboard the current user (or re-onboard) to this assistant. Resolves Notion identity automatically, asks short HITL questions for preferences, optionally scrapes Gmail + Slack to draft a voice profile, writes `about/identity.md`, `about/voice.md`, `about/workspace.md`. Run on first install or when handing off to a teammate. |
 | `/assistant-help` | Quick reference of all available commands grouped by workflow stage, plus suggested order around a customer session and pointers to deeper docs. Run anytime you forget what's available. |
 | `/assistant-remember <correction>` | Manually invoke the context-keeper to update context files / memory. |
-| `/assistant-automate <task description>` | Evaluate a described task for automation — drafts a new agent + command on approval and writes them into the assistant. |
+| `/assistant-automate <task description>` | *(Dev-only — requires working in the plugin source repo.)* Evaluate a described task for automation — drafts a new agent + command on approval and writes them into the plugin. |
 | `/aise-context` | Load the AISE assistant operating context — role definition, ground rules, command registry, and agent index. Invoke at the start of any session if context seems missing or stale. |
 
 ### Standalone
@@ -162,9 +153,9 @@ Full spec per skill in [`skills/`](skills/).
 | `post-session-debrief` | Executes `/session-debrief`. Superagent that orchestrates the complete post-session workflow: spawns `session-summarizer`, `email-drafter`, `kdd-builder` (A-sessions only), and `notion-writer` in sequence; surfaces scorecard eval and product feedback log in chat only. |
 | `bulk-debrief` | Executes `/bulk-debrief-yesterday`. Discovers all external customer meetings from the previous calendar day, checks each for prior debrief signals (notes / draft / tasks), and executes the complete `post-session-debrief` procedure for each unprocessed or partially-processed session in sequence. |
 | `notion-writer` | Executes Notion create/update operations following `notion-schema.md`. |
-| `workflow-advisor` | Executes `/assistant-automate`. Evaluates whether a task is worth automating, drafts the agent + command + CLAUDE.md rows as a proposal, waits for approval, then writes the files. Also triggered proactively when a strong automation candidate appears in conversation. |
-| `diagram-builder` | Executes `/draft-diagram`. Uses Figma Plugin API when connected (primary output); falls back to a Python SVG generator, then HTML. Saves artifacts to `diagrams/<customer>/`, uploads SVG to Google Drive on the SVG path, and attaches the result to the Notion session page. |
-| `sf-backfill` | Executes `/notion-sync-sf`. Queries all active packages, fetches SF opp data via Glean per customer (ACV + contract end date using opp start date logic), applies ARR/date updates, handles rollovers (deactivate old + create new), flags churn/skip cases in chat only. |
+| `workflow-advisor` | *(Dev-only — lives in `.claude/agents/`, not distributed in the plugin.)* Executes `/assistant-automate`. Evaluates whether a task is worth automating, drafts the agent + command + CLAUDE.md rows as a proposal, waits for approval, then writes the files. |
+| `diagram-builder` | Executes `/draft-diagram`. Uses Figma Plugin API when connected (primary output); falls back to a Python SVG generator, then HTML. Saves artifacts to `~/Desktop/aise-assistant/diagrams/<customer>/`, uploads SVG to Google Drive on the SVG path, and attaches the result to the Notion session page. |
+| `sf-backfill` | Executes `/notion-sync-sf`. Queries all active packages, fetches SF opp data per customer (ACV + contract end date using opp start date logic), applies ARR/date updates, handles rollovers (deactivate old + create new), flags churn/skip cases in chat only. Uses Salesforce MCP directly; falls back to Glean search when SF is unavailable — Glean-sourced values are tagged `⚠️ [Glean]` and always require user confirmation before writing. |
 | `support-hub` | Searches support.productboard.com via WebSearch + WebFetch to ground answers in official PB docs. Callable standalone or as a sub-step by session-prepper, email-drafter, and post-session-debrief. |
 | `notion-integrity-check` | Executes `/notion-check`. Walks the user's Notion records (Customers / Active Packages / Sessions / Tasks) hunting for ownership and field drift. Read-only by default; surfaces findings grouped by severity. Applies low-risk fixes only when `--fix` is passed. |
 | `whats-new` | Executes `/customer-whats-new`. Pulls activity for one customer inside a defined window across Gmail / Glean (Slack, Gong, SF, Confluence, Drive) / Notion / Calendar, distills a top Signals block, returns a grouped chat brief. Read-only — no writes. |
@@ -193,16 +184,16 @@ Default: **confirm the diff before writing**. The user can override with "just d
 
 ## Proactive automation trigger
 
-When the user describes a **new recurring or multi-step task** in conversation that has no existing agent or slash command covering it, and it looks like it would take >5 minutes manually or is error-prone: suggest `/assistant-automate <brief task description>` inline. One sentence, not a lecture. They can ignore it; if they engage, spawn `workflow-advisor`.
+When the user describes a **new recurring or multi-step task** in conversation that has no existing agent or slash command covering it, and it looks like it would take >5 minutes manually or is error-prone: suggest `/assistant-automate <brief task description>` inline. One sentence, not a lecture. They can ignore it; if they engage, read `.claude/agents/workflow-advisor.md` and execute it inline (dev-only — only available when working in the plugin source repo).
 
 ---
 
 ## Output defaults
 
 - Inline markdown in chat for most asks.
-- Bolded labels > headers; bullets > paragraphs. Match the user's comms style — see `about/voice.md` for personal preferences.
-- **English variant, punctuation, sign-offs, casual register, and forbidden phrases** all live in `about/voice.md`. Read that file before drafting on the user's behalf.
-- **Name handling.** The user's display name and any accent variants to strip live in `about/identity.md`. Never introduce a different spelling than what's documented there.
+- Bolded labels > headers; bullets > paragraphs. Match the user's comms style — see `<PLUGIN_DATA_DIR>/about/voice.md` for personal preferences.
+- **English variant, punctuation, sign-offs, casual register, and forbidden phrases** all live in `<PLUGIN_DATA_DIR>/about/voice.md`. Read that file before drafting on the user's behalf.
+- **Name handling.** The user's display name and any accent variants to strip live in `<PLUGIN_DATA_DIR>/about/identity.md`. Never introduce a different spelling than what's documented there.
 - For Notion writes: follow `context/notion-schema.md` exactly (date triples, `__YES__`/`__NO__` checkboxes, multi-selects as JSON array strings, relations as arrays of page URLs).
 - **For `/session-prep`**: write to the Notion session page under a collapsible toggle heading so the user can later add real session notes underneath it.
 - **For architecting sessions (via `/session-prep` or `/session-kdds`)**: also create a sub-page of the Session page titled `KDDs — [Session ID] [Name]` containing the customer-facing KDD doc (title, agenda, outcome, action items, per-KDD starter examples + blank decision tables). Spec lives in `templates/session-kdds/00-index.md`. Starter examples seeded from real customer context only — never fabricated.

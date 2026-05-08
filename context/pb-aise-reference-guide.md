@@ -6,6 +6,7 @@
 
 ## Table of Contents
 
+0. [Account Team Model](#0-account-team-model)
 1. [Program Structure & Session Types](#1-program-structure--session-types)
 2. [What Good Looks Like — Session-by-Session (Scorecard Standards)](#2-what-good-looks-like--session-by-session-scorecard-standards)
 3. [Productboard Data Model & Architecture](#3-productboard-data-model--architecture)
@@ -13,6 +14,21 @@
 5. [Integrations Landscape](#5-integrations-landscape)
 6. [New Project Setup Checklist](#6-new-project-setup-checklist)
 7. [Common Risks & Mitigation Patterns](#7-common-risks--mitigation-patterns)
+8. [Internal Communication Conventions](#8-internal-communication-conventions)
+
+---
+
+## 0. Account Team Model
+
+Three roles cover every account. Each is assigned per account independently — there are no dedicated fixed combos.
+
+| Role | Abbrev. | Responsibility |
+|---|---|---|
+| Account Executive | AE | Commercial owner, upsell, contract negotiations |
+| Renewal Manager | RM | Renewal and contract health |
+| AI Success Engineer | AISE | Onboarding program, adoption, technical guidance |
+
+**"CSM" is not a Productboard role.** Never use this term. The AISE is the post-sales success role.
 
 ---
 
@@ -492,4 +508,21 @@ These are blockers — you can't design the workspace without them:
 | **Legacy feedback tool renewal reduces urgency** | 🟡 | Deprioritize migration. Focus on building the right process in PB first; migration can follow. Don't let this become a blocker or a distraction. |
 | **Roadmap as single monolithic view** | 🟠 | Surface the persona problem early in the roadmap session. "One roadmap for everyone" always disappoints everyone. Push toward a portfolio of 2–5 views from the start. |
 | **Discovery ends without synthesis** | 🔴 | Score killer. Build synthesis + gap identification + setup implications into the session agenda — not as an afterthought. Get customer confirmation before closing. |
+
+---
+
+## 8. Internal Communication Conventions
+
+### Customer Slack channels
+
+Productboard uses a standard two-channel pattern per customer. These names are org-wide conventions — never user-specific.
+
+| Channel | Purpose |
+|---|---|
+| `#accounts-{customer}` | Internal-only. Post-session debrief notes, internal coordination, deal signals, AE alignment. |
+| `#ext-{customer}` | External shared channel with the customer. Client-facing communications only. |
+
+**Coverage caveat:** Not every customer has dedicated Slack channels. When channels are absent, default to follow-up emails per the communication style guide.
+
+Before posting, search Slack for `accounts-{customer}` and `ext-{customer}` to confirm the channels exist. If neither exists, route all follow-up through Gmail.
 | **Artefacts not gathered before discovery** | 🟠 | Chase artefacts at kickoff with explicit named owners and due dates. Don't run discovery blind. |

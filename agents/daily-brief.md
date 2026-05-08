@@ -1,6 +1,6 @@
 ---
 name: daily-brief
-description: Pulls today's Google Calendar events and open Notion Tasks, flags tomorrow's external sessions needing prep, auto-creates calendar focus blocks for missing prep, and renders a styled HTML daily briefing page saved to ~/Desktop/daily-brief-YYYY-MM-DD.html.
+description: Pulls today's Google Calendar events and open Notion Tasks, flags tomorrow's external sessions needing prep, auto-creates calendar focus blocks for missing prep, and renders a styled HTML daily briefing page saved to ~/Desktop/aise-assistant/briefs/daily-brief-YYYY-MM-DD.html.
 tools: Read, Write, Bash, mcp__claude_ai_Google_Calendar__list_events, mcp__claude_ai_Google_Calendar__get_event, mcp__claude_ai_Google_Calendar__create_event, mcp__claude_ai_Notion__notion-query-data-sources, mcp__claude_ai_Notion__notion-fetch
 ---
 
@@ -168,18 +168,23 @@ Build a self-contained HTML file (inline CSS, no external dependencies, no CDN l
 
 ### 8. Save the file
 
-Save to: `~/Desktop/daily-brief-[YYYY-MM-DD].html`
+First create the output directory:
+```bash
+mkdir -p ~/Desktop/aise-assistant/briefs
+```
+
+Save to: `~/Desktop/aise-assistant/briefs/daily-brief-[YYYY-MM-DD].html`
 
 Overwrite if a file already exists at that path (re-runs are idempotent).
 
-If `--open` was passed, run: `open ~/Desktop/daily-brief-[YYYY-MM-DD].html`
+If `--open` was passed, run: `open ~/Desktop/aise-assistant/briefs/daily-brief-[YYYY-MM-DD].html`
 
 ### 9. Report in chat
 
 Post a compact summary:
 
 ```
-**Daily brief saved** → ~/Desktop/daily-brief-[YYYY-MM-DD].html
+**Daily brief saved** → ~/Desktop/aise-assistant/briefs/daily-brief-[YYYY-MM-DD].html
 
 Today: [N] meetings ([N] external, [N] internal) · [N] open tasks ([N] today, [N] this week)
 

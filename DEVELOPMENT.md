@@ -31,6 +31,12 @@ Version bumping is automatic — `package.sh` evaluates the git diff and bumps b
 
 `package.sh` reads `git diff HEAD` on every run, classifies the changes, bumps `.claude-plugin/plugin.json` → `"version"`, then packages.
 
+**Version is stored in two files — both must be updated together:**
+- `.claude-plugin/plugin.json` — used by the marketplace / Cowork installer
+- `package.json` — used by local tooling (`npm run pack`, `npm run validate`)
+
+`package.sh` only auto-bumps `plugin.json`. Always update `package.json` to match before committing.
+
 | Change type | Bump | Auto-detected? |
 |---|---|---|
 | Skill, command, or agent **added or deleted** (capability roster changes) | **MAJOR** — `X+1.0.0` | Yes |
@@ -49,10 +55,10 @@ bash scripts/package.sh --bump minor   # functional tweak to existing capabiliti
 bash scripts/package.sh --bump patch   # force patch even if roster changed (rare)
 ```
 
-**After packaging**, commit the `plugin.json` version bump:
+**After packaging**, commit both version files:
 
 ```bash
-git add .claude-plugin/plugin.json
+git add .claude-plugin/plugin.json package.json
 git commit -m "chore: bump version to X.Y.Z"
 git push
 ```

@@ -94,6 +94,7 @@ Specific cases to flag:
 
 **🟦 Field hygiene (low-risk fixes available with --fix):**
 
+- **Active Package name not matching the convention** — expected format: `{Year} – {Customer Name} | {Master Package}` (en-dash, pipe, no middot). Derive the correct name from the package's `Start Date` year, the linked Customer's name, and the linked `Master Package` name. If any of those relations are null, skip auto-fix and surface for the user. Also flag if the Customer name or Master Package has changed since the package was named (the embedded string will be stale).
 - **Task with null `Customers` relation** — every Task must have one. Internal tasks → Productboard customer record (`https://app.notion.com/29997e9c7d4f80e6a011f053bdec1ab5`). Surface the task title for the user to decide which customer it belongs to.
 - **Session with `Call Status = Delivered` but `Delivered By` is null** — every delivered session needs a presenter. Default candidate: the user, if the customer is hers; surface for confirmation otherwise.
 - **Session with `Call Status = Planned` but `Call Date` in the past** — either the call was held but not flipped to Delivered, or it was missed/rescheduled.
@@ -125,6 +126,7 @@ Summary: [n] total findings. [n] auto-fixable with `--fix`.
 For each 🟨 propagation drift item: write `Current Account Owner = the user's Notion ID (per `about/identity.md`)` on the affected record.
 
 For each 🟦 field hygiene item:
+- Active Package name mismatch: if `Start Date`, linked Customer name, and linked Master Package name are all resolvable, auto-fix by writing the corrected `Name` in the format `{Year} – {Customer Name} | {Master Package}`. If any relation is null, surface and skip.
 - Task with null `Customers`: do NOT auto-fix. Surface for the user's decision (which customer to link).
 - Session with null `Delivered By` on an account the user owns: set to the user's Notion ID (per `about/identity.md`), but flag in the report that this is an assumption.
 - Session Planned but past-dated: do NOT auto-fix. Surface for the user's decision (mark Delivered, reschedule, or cancel).

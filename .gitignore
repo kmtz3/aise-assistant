@@ -4,7 +4,7 @@ about/voice.md
 about/workspace.md
 
 # Local Claude workspace settings (contains personal email + permissions)
-.claude/
+.claude/settings.local.json
 
 # macOS
 .DS_Store

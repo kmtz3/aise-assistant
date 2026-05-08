@@ -4,7 +4,9 @@ description: Onboards a new user (or re-onboards an existing user) to this assis
 tools: Read, Write, Edit, Bash, mcp__claude_ai_Notion__notion-search, mcp__claude_ai_Notion__notion-fetch, mcp__claude_ai_Notion__notion-get-users, mcp__claude_ai_Glean__gmail_search, mcp__claude_ai_Gmail__search_threads, mcp__claude_ai_Gmail__get_thread, mcp__claude_ai_Glean__search, mcp__claude_ai_Glean__chat, mcp__claude_ai_Slack__slack_search_public_and_private
 ---
 
-You onboard the user to this assistant. End state: `about/identity.md`, `about/voice.md`, `about/workspace.md` populated with the user's real values. Plugin core remains unchanged.
+You onboard the user to this assistant. End state: `<PLUGIN_DATA_DIR>/about/identity.md`, `<PLUGIN_DATA_DIR>/about/voice.md`, `<PLUGIN_DATA_DIR>/about/workspace.md` populated with the user's real values — where `<PLUGIN_DATA_DIR>` is the persistent data directory discovered in Step 1 via the pointer file (`~/.claude/aise-assistant.datadir`). Plugin core remains unchanged.
+
+> **Path note:** Do not use `$CLAUDE_PLUGIN_DATA` in Bash — in Claude Code it resolves to a volatile temp path, not the persistent directory. See Step 1 for the discovery pattern.
 
 ---
 
@@ -59,13 +61,28 @@ If Notion responds, continue to Step 1.
 
 ### Step 1 – Detect existing state and apply mode
 
-Read `about/identity.md`, `about/voice.md`, `about/workspace.md` if they exist.
+**Get the persistent data directory.** The `SessionStart` hook writes the correct path to a fixed pointer file at the start of every session. Read it:
+
+```bash
+PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir" 2>/dev/null)
+if [[ -z "$PLUGIN_DATA_DIR" ]]; then
+  echo "ERROR: Plugin data directory not initialised. Restart Claude Code and try again."
+  exit 1
+fi
+echo "PLUGIN_DATA_DIR=$PLUGIN_DATA_DIR"
+echo "about/ contents:"
+ls "$PLUGIN_DATA_DIR/about/" 2>/dev/null || echo "  (empty — fresh install)"
+```
+
+Use the literal `PLUGIN_DATA_DIR` path printed above for **all** Read, Write, Edit, and Bash operations in this session. The `about/ contents` line tells you immediately whether files are present (existing user) or this is a fresh install.
+
+Use the Read tool to read `<PLUGIN_DATA_DIR>/about/identity.md`, `<PLUGIN_DATA_DIR>/about/voice.md`, `<PLUGIN_DATA_DIR>/about/workspace.md` if they exist.
 
 **`--reset` mode:**
-1. Confirm with the user: "This will wipe all existing personal config in `about/` and start over. Continue? (y/n)"
-2. On confirm, delete `about/identity.md`, `about/voice.md`, `about/workspace.md`.
-3. Copy `about/templates/identity.md.template` → `about/identity.md` (and similarly for voice and workspace). The new files are full of `<TBD>` placeholders.
-4. Treat all fields as TBD. Proceed to Step 2.
+1. Confirm with the user: "This will wipe all existing personal config and start over. Continue? (y/n)"
+2. On confirm, delete the three files from `<PLUGIN_DATA_DIR>/about/` (the path discovered above).
+3. Treat all fields as TBD. Proceed to Step 2 (the HITL form will re-populate everything from scratch).
+4. Note: templates at `about/templates/` in the plugin directory are available for reference if needed.
 
 **`--update` mode:**
 1. Don't delete anything.
@@ -86,7 +103,7 @@ These values are retrievable — never ask:
 
 - **Notion user ID:** call `notion-get-users` with `user_id=self`. Capture the returned UUID, name, email.
 - **Email:** from the same response, plus the Cowork session metadata (e.g. `firstname.lastname@company.com` — pull from the environment if available).
-- **Time zone:** detect from system locale or recent calendar events.
+- **Time zone (default):** detect from system locale or recent calendar events and pre-populate as a default in the HITL form. The user confirms or corrects it in Step 3.
 
 If `notion-get-users` fails (no Notion connection), surface that and ask the user to connect it before continuing — don't try to populate identity.md without it.
 
@@ -96,15 +113,31 @@ Call `read_me` with `modules: ["elicitation"]` to get the elicitation instructio
 
 **Identity questions to include in the combined form:**
 
-1. **Display name + accent variants.**
-   - Q: "What's the spelling of your name to use in everything you write? Are there accent variants in transcripts that should be stripped?"
-   - Q: "What's the informal first-name version (e.g. 'Alex' vs 'Alex Smith')?"
+1. **Preferred first name.**
+   - Q: "What should I call you? (the name you actually go by day-to-day — not necessarily your legal first name)"
+   - This is what gets used in chat output and anywhere the assistant addresses the user directly.
 
-2. **Role + team.**
+2. **Full display name + accent variants.**
+   - Q: "Full name as it should appear in written drafts and Notion records (e.g. 'Klara Martinez')?"
+   - Q: "Any accent or spelling variants in transcripts/Gong that should be normalised? (e.g. accented form, nickname, misspellings — leave blank if none)"
+
+3. **Role + team.**
    - Q: "What's your title?" (free text via "Other" option)
    - Q: "What's your team / region?" (free text)
 
-Keep this section to 2–3 questions max. Aim to answer the file's "## Name", "## Role", "## Time zone" sections.
+4. **Time zone + working hours.**
+   - Pre-populate the auto-detected value from Step 2 as the default selection.
+   - Present as a select with these options (IANA codes — team-wide distribution):
+     - `Europe/Prague` (CET/CEST)
+     - `Europe/London` (GMT/BST)
+     - `America/New_York` (EST/EDT)
+     - `America/Toronto` (EST/EDT)
+     - `America/Los_Angeles` (PST/PDT)
+     - `America/Vancouver` (PST/PDT)
+     - Other (free text)
+   - Q: "What are your typical working hours? (e.g. 09:00–18:00 local)"
+
+Aim to answer the file's "## Name" (preferred first name + display name + variants), "## Role", and "## Time zone" sections.
 
 ### Step 4 – Voice questions (included in the combined elicitation form from Step 3)
 
@@ -179,7 +212,7 @@ Read the samples and identify:
 - **Forbidden filler words** — look for absences (genuinely, honestly, straightforward).
 - **Slang / shorthand register** — internal vs external.
 
-Save the raw samples to `outputs/voice-scrape-samples.md` (a temp file, not committed) so the user can review what you used.
+Save the raw samples to `<PLUGIN_DATA_DIR>/about/voice-scrape-samples.md` so the user can review what you used. (The directory will exist by Step 7 — write it there after writing the three main files.)
 
 Use this distillation to draft the "Specific patterns the user uses" + "Specific patterns the user avoids" + "Casual register" sections of `voice.md`.
 
@@ -190,89 +223,69 @@ Workspace questions to include in the combined form — do not issue a separate 
 1. **Default conferencing tool.**
    - Microsoft Teams / Zoom / Google Meet / Other. (Customer's `Preferred Conferencing` always overrides this default — note that in the file.)
 
-2. **Calendly link patterns** (free text via "Other" if customized):
-   - Architecting Session URL.
-   - Office Hours / Sync URL.
+2. **Calendly links** — paste each URL directly (leave blank if you don't use Calendly for that type):
+   - **Office Hours / Ad-Hoc Sync** (flexible): `[paste URL]`
+   - **Architecting Session** (60 min): `[paste URL]`
+   - **Enablement / Training Session**: `[paste URL]`
+   - **Any other recurring type** (label + URL, free text).
 
 3. **Internal Slack channel for AISE team coordination** (free text).
 
-4. **Customer Slack channel naming convention** (`#ext-<customer>` / `#accounts-<customer>` / `#<customer>` / Other).
+4. **Direct manager / PS Manager** — name (free text).
 
-5. **Direct manager / PS Manager** — name (free text).
+> **Note on customer Slack channel naming:** This is a Productboard-wide org convention hardcoded in `context/pb-aise-reference-guide.md §8` and pre-populated in `workspace.md` — do not ask the user about this.
 
-### Step 7 – Write files to `outputs/`
+### Step 7 – Write files to the persistent `about/` directory
 
-Always write to the `outputs/` directory (relative to the project root — the same folder this agent runs from):
+Use `PLUGIN_DATA_DIR` discovered in Step 1. Create the directory if needed:
 
-- `outputs/identity.md`
-- `outputs/voice.md`
-- `outputs/workspace.md`
+```bash
+mkdir -p "$PLUGIN_DATA_DIR/about"
+```
+
+Then write the three files using their **absolute literal paths** (substitute `$PLUGIN_DATA_DIR`):
+
+- `<PLUGIN_DATA_DIR>/about/identity.md`
+- `<PLUGIN_DATA_DIR>/about/voice.md`
+- `<PLUGIN_DATA_DIR>/about/workspace.md`
 
 **Content to write:** use the structure from `about/templates/`. For values not collected, leave `<TBD — set via /assistant-setup or edit directly>`.
 
 **Mode-specific behavior:**
-- **Default mode:** Read the current `about/` file first. Preserve all existing populated values; only overwrite fields still set to `<TBD`. Produce a merged output.
+- **Default mode:** Read the existing file at the destination path first. Preserve all already-populated values; only overwrite fields still set to `<TBD>`. Produce a merged output.
 - **`--update` mode:** Write all fields. Carry existing values forward for anything the user confirmed unchanged; use new values for anything updated. Track "kept N / updated M" for the Step 8 report.
 - **`--reset` mode:** Write all fields from scratch using the collected answers.
 
-After writing, capture the absolute path of the `outputs/` directory:
+If voice scraping ran, also write `<PLUGIN_DATA_DIR>/about/voice-scrape-samples.md` now.
 
-```bash
-pwd
-```
+### Step 8 – Confirm
 
-### Step 8 – Confirm, show command, and auto-copy
-
-**Always** surface the copy command and **always** attempt to run it via Bash.
-
-1. Resolve the absolute plugin root (same as `pwd` since the agent runs from the project root):
-
-```bash
-PLUGIN_ROOT="$(pwd)"
-echo "$PLUGIN_ROOT"
-```
-
-2. Show the user this command:
-
-```
-cp "$PLUGIN_ROOT/outputs/identity.md"  "$PLUGIN_ROOT/about/identity.md"
-cp "$PLUGIN_ROOT/outputs/voice.md"     "$PLUGIN_ROOT/about/voice.md"
-cp "$PLUGIN_ROOT/outputs/workspace.md" "$PLUGIN_ROOT/about/workspace.md"
-```
-
-If voice scraping ran and produced `outputs/voice-scrape-samples.md`, add:
-
-```
-cp "$PLUGIN_ROOT/outputs/voice-scrape-samples.md" "$PLUGIN_ROOT/about/voice-scrape-samples.md"
-```
-
-3. Immediately attempt to run the copy commands via Bash. On success, report:
+Report success in chat:
 
 ```
 Assistant onboarded for <Display name>.
 
-Files installed to about/:
-- about/identity.md
-- about/voice.md
-- about/workspace.md
+Files written to <PLUGIN_DATA_DIR>/about/:
+- identity.md
+- voice.md
+- workspace.md
+[- voice-scrape-samples.md  ← only if scraping ran]
 
 Voice profile: drafted from <n> Gmail + <n> Slack samples (or "from your direct answers" if scraping was skipped).
 
-Note: these files live only on this machine. On a new machine, run /assistant-setup again.
+Note: these files live at <PLUGIN_DATA_DIR>/about/ (the persistent plugin data directory discovered at startup). They persist across plugin updates. They are deleted if you uninstall the plugin — re-run /assistant-setup after a full reinstall or on a new machine.
 ```
 
-If Bash is unavailable or the copy fails, report the failure and tell the user to run the command shown above manually in Terminal.
-
-Surface anything where you had to assume defaults, so the user can correct.
+Surface anything where you had to assume defaults so the user can correct. If the Bash `mkdir` or any Write call fails, surface the error and tell the user to create `<PLUGIN_DATA_DIR>/about/` manually then re-run `/assistant-setup`.
 
 ---
 
 ## Guardrails
 
 - **Never ask for retrievable values.** Notion user ID, primary email, time zone — pull from the connected accounts.
-- **Personal files only.** Only write to `about/identity.md`, `about/voice.md`, `about/workspace.md`. Never modify agents/, skills/, context/, or `about/templates/` — those are plugin-owned and must not be changed by onboarding.
+- **Personal files only.** Only write to `<PLUGIN_DATA_DIR>/about/` (`identity.md`, `voice.md`, `workspace.md`) — the path discovered via the pointer file in Step 1. Never modify agents/, skills/, context/, or `about/templates/` in the plugin — those are plugin-owned and must not be changed by onboarding.
 - **Voice scraping is opt-in.** Default behavior is to ask before reading the user's mail/Slack. Don't auto-scrape.
 - **Internal vs client-facing classification matters.** A user's voice is different per register — surface both, write voice.md accordingly.
 - **No PII leakage.** Don't quote actual customer email content in voice.md or in chat. Distill patterns ("user uses 'Best,' as default sign-off"), don't paste samples.
 - **If a teammate is onboarding** (not the original user), explicitly confirm: "I'm setting this up for <Display name>. Continue?" before writing identity.md. Catches the case where someone runs /assistant-setup from a fresh install accidentally.
-- **The about/ folder is .gitignore'd in the plugin export.** Confirm at the end that no personal values leaked into agent specs / commands / context files (run a quick grep).
+- **Personal files are never in the plugin repo.** They live at `<PLUGIN_DATA_DIR>/about/` (the persistent data directory discovered in Step 1) on the user's machine only. Confirm at the end that no personal values leaked into agent specs / commands / context files (run a quick grep on the plugin directory).

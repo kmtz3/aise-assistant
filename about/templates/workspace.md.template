@@ -11,8 +11,9 @@
 
 ## Calendly link patterns
 
-- **Architecting Session** (60 min): `<TBD — your Calendly URL>`
-- **Office Hours / Ad-Hoc / Program Sync** (flexible): `<TBD>`
+- **Office Hours / Ad-Hoc Sync** (flexible): `<TBD>`
+- **Architecting Session** (60 min): `<TBD>`
+- **Enablement / Training Session**: `<TBD>`
 - `<TBD — add other recurring event types as needed>`
 
 ## Internal Slack channels — coordination
@@ -24,8 +25,11 @@
 
 ## Customer Slack channel naming
 
-- **External shared channels with customers:** `<TBD — e.g. #ext-{customer}>`
-- **Internal-only customer channel:** `<TBD — e.g. #accounts-{customer}>`
+Productboard-wide convention — same for all AISEs, never user-specific:
+
+- **External shared channel with customer (client-facing):** `#ext-{customer}`
+- **Internal channel about the customer:** `#accounts-{customer}`
+- **Coverage:** Not every customer has dedicated Slack channels. When channels are absent, default to follow-up emails.
 
 ## Internal coordinators (recurring people the user works with)
 

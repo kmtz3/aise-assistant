@@ -52,11 +52,15 @@ Structure (markdown, bold labels, bullets):
 ### 5. Land the prep brief in Notion
 
 - Find the Session page (query Sessions DB by customer relation + date). Create one (`Call Status = Planned`) if missing.
-- Append a **collapsible toggle heading** at the top of the page body:
+- Append a **collapsible toggle heading** at the top of the page body using this exact Notion-flavored markdown format:
   ```
-  📋 Prep — YYYY-MM-DD
+  ## 📋 Prep — YYYY-MM-DD {toggle="true"}
+  [TAB]Brief context paragraph
+  [TAB]**Section header**
+  [TAB]- bullet item
+  [TAB]- bullet item
   ```
-  Put the full prep brief inside the toggle. Leave space below for real session notes.
+  Children must be indented with a **tab character** (`\t`). For sub-bullets nested under a numbered list item, use two tabs. **Do NOT use `>` blockquote prefix on any content line** — each `>` renders as a separate quote block with a left border. Leave space below the toggle for real session notes.
 - Do **not** set `Do not count` — this is a real session.
 - If the page is prep-only (no actual customer call), rename with `[PREP]` prefix and set `Do not count = __YES__`.
 

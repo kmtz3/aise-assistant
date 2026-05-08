@@ -97,9 +97,14 @@ elif [[ "$CHECK_ONLY" == true ]]; then
   miss "salesforce entry missing from mcp.json"
   note "Run without --check to add it."
 else
-  # Resolve the user email: try about/identity.md first, then prompt
+  # Resolve the user email: try $PLUGIN_DATA_DIR/about/identity.md first, then prompt
   SF_EMAIL=""
-  IDENTITY="$PLUGIN_DIR/about/identity.md"
+  PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir" 2>/dev/null || true)
+  if [[ -z "$PLUGIN_DATA_DIR" ]]; then
+    PLUGIN_DATA_DIR=$(ls -d "$HOME/.claude/plugins/data/aise-assistant"* 2>/dev/null | head -1)
+    PLUGIN_DATA_DIR="${PLUGIN_DATA_DIR:-$HOME/.claude/plugins/data/aise-assistant}"
+  fi
+  IDENTITY="$PLUGIN_DATA_DIR/about/identity.md"
   if [[ -f "$IDENTITY" ]]; then
     SF_EMAIL=$(grep -E '^(Email|email):' "$IDENTITY" 2>/dev/null \
       | head -1 \
