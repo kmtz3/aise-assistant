@@ -125,6 +125,8 @@ For each account:
    **History search scope:**
    - The Gong / Gmail history search should look for the **target user's** involvement (their email, their name) as the account owner, not the operator's.
    - Also search for any prior AISE on the account who is neither the target user nor the operator (these are the actual predecessors being handed off from).
+   - **`Gmail__search_threads` is the operator's mailbox** — in delegated mode it will return empty for the target user's customer emails. This is expected, not a failure. Skip `Gmail__search_threads` in delegated mode; rely on `Glean:gmail_search with from:[target-user-email] [customer-name]` instead.
+   - For Gong, use `app:gong "[Customer Name]"` — quote the customer name to scope results. Read individual call URLs via `read_document`; don't parse the raw search results blob.
 
 3. The account-setup procedure will surface its own per-account proposal in chat (company overview, Active Package fields, history summary, sessions to backfill). **Wait for the user's go-ahead on that account.** This per-account gate is mandatory — Active Packages are financial ledger records and cannot be auto-approved in bulk.
 

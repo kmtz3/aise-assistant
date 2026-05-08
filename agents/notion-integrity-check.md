@@ -31,7 +31,7 @@ Otherwise, the scope is "all of the user's records" — pulled via the queries b
 
 ### Step 2 – Pull the user's record tree
 
-Run these queries in parallel (read `context/notion-schema.md` first if anything looks stale):
+Run queries A and B together, then C and D together (pairs, not all four at once) to stay within Notion's rate limit. If any query returns a 429, wait 5 seconds and retry it once before continuing. Read `context/notion-schema.md` first if anything looks stale.
 
 **A. Customers the user owns:**
 ```sql
