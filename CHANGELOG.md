@@ -5,6 +5,37 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [2.2.0] — 2026-05-09
+
+### Added
+- `/notion-sync-owner` skill — push `Customer.Owner` → `Current Account Owner` on all linked Sessions, Tasks, and Active Packages (`--mine` / `--global`)
+- `/notion-flag-renewals` skill — set `Status = Renewal` on active packages ending within N days; `--dry-run` previews without writing
+
+---
+
+## [2.1.0] — 2026-05-09
+
+### Added
+- Customer page template with agent-readable sections (notion-schema.md)
+- Active Package template wired into account-setup and notion-writer agents
+
+### Fixed
+- Scope Gong queries to post-sales calls; skip Gmail lookups in delegated (teammate) mode
+- Session page structure now driven from Notion templates rather than hard-coded agent logic
+
+---
+
+## [2.0.0] — 2026-05-09
+
+### Added
+- `customer-plan-next` agent and `/customer-plan-next` command
+- Session page structure driven from Notion templates
+
+### Fixed
+- Full plugin review fixes; gitignore `.claude/` from distribution
+
+---
+
 ## [1.2.3] — 2026-05-08
 
 ### Fixed
