@@ -17,6 +17,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_DIR="$(dirname "$SCRIPT_DIR")"
 PARENT_DIR="$(dirname "$PLUGIN_DIR")"
 OUT_DIR="$PARENT_DIR"
+BUMP_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -24,9 +25,17 @@ while [[ $# -gt 0 ]]; do
       OUT_DIR="$2"
       shift 2
       ;;
+    --bump)
+      BUMP_OVERRIDE="$2"
+      if [[ ! "$BUMP_OVERRIDE" =~ ^(major|minor|patch)$ ]]; then
+        echo "Error: --bump must be major, minor, or patch" >&2
+        exit 1
+      fi
+      shift 2
+      ;;
     *)
       echo "Unknown argument: $1" >&2
-      echo "Usage: $0 [--out <output-dir>]" >&2
+      echo "Usage: $0 [--out <output-dir>] [--bump major|minor|patch]" >&2
       exit 1
       ;;
   esac
@@ -36,6 +45,71 @@ if [[ ! -d "$OUT_DIR" ]]; then
   echo "Error: output directory not found: $OUT_DIR" >&2
   exit 1
 fi
+
+# ---------------------------------------------------------------------------
+# Auto-bump version based on git diff vs HEAD (or --bump override)
+# Rules (from DEVELOPMENT.md):
+#   MAJOR — any skill/command/agent deleted (capability removed)
+#   MINOR — any skill/command/agent added (new capability)
+#   PATCH — everything else (fixes, docs, schema, context updates)
+# ---------------------------------------------------------------------------
+CURRENT_VERSION=$(python3 -c "import json; print(json.load(open('$PLUGIN_DIR/.claude-plugin/plugin.json'))['version'])")
+IFS='.' read -r VER_MAJOR VER_MINOR VER_PATCH <<< "$CURRENT_VERSION"
+
+if [[ -n "$BUMP_OVERRIDE" ]]; then
+  BUMP="$BUMP_OVERRIDE"
+  BUMP_REASON="(manual override via --bump)"
+else
+  BUMP="patch"
+  BUMP_REASON=""
+
+  # Collect changed files: git diff vs HEAD + untracked files
+  DIFF_STATUS=$(git -C "$PLUGIN_DIR" diff HEAD --name-status 2>/dev/null || true)
+  UNTRACKED=$(git -C "$PLUGIN_DIR" ls-files --others --exclude-standard 2>/dev/null | sed 's/^/A\t/' || true)
+  ALL_CHANGES=$(printf '%s\n%s' "$DIFF_STATUS" "$UNTRACKED")
+
+  DELETED_CAPS=""
+  ADDED_CAPS=""
+  while IFS=$'\t' read -r status file; do
+    [[ -z "$file" ]] && continue
+    if echo "$file" | grep -qE '^(skills|commands|agents)/[^/]+'; then
+      case "$status" in
+        D) DELETED_CAPS="$DELETED_CAPS $file" ;;
+        A) ADDED_CAPS="$ADDED_CAPS $file" ;;
+      esac
+    fi
+  done <<< "$ALL_CHANGES"
+
+  if [[ -n "$DELETED_CAPS" ]]; then
+    BUMP="major"
+    BUMP_REASON="(capability removed:$DELETED_CAPS)"
+  elif [[ -n "$ADDED_CAPS" ]]; then
+    BUMP="minor"
+    BUMP_REASON="(capability added:$ADDED_CAPS)"
+  else
+    BUMP_REASON="(no capability additions or removals detected)"
+  fi
+fi
+
+case "$BUMP" in
+  major) NEW_VERSION="$((VER_MAJOR + 1)).0.0" ;;
+  minor) NEW_VERSION="${VER_MAJOR}.$((VER_MINOR + 1)).0" ;;
+  patch) NEW_VERSION="${VER_MAJOR}.${VER_MINOR}.$((VER_PATCH + 1))" ;;
+esac
+
+echo "  version bump : $CURRENT_VERSION → $NEW_VERSION [$BUMP] $BUMP_REASON"
+
+# Write new version back to plugin.json
+python3 - "$PLUGIN_DIR/.claude-plugin/plugin.json" "$NEW_VERSION" <<'PYEOF'
+import json, sys
+path, new_ver = sys.argv[1], sys.argv[2]
+with open(path) as f:
+    d = json.load(f)
+d["version"] = new_ver
+with open(path, "w") as f:
+    json.dump(d, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+PYEOF
 
 # Read version from plugin.json
 VERSION=$(python3 -c "import json,sys; print(json.load(open('$PLUGIN_DIR/.claude-plugin/plugin.json'))['version'])")
@@ -67,6 +141,7 @@ rsync -a \
   --exclude='.DS_Store' \
   --exclude='.git/' \
   --exclude='.github/' \
+  --exclude='.claude-plugin/marketplace.json' \
   --exclude='.claude/' \
   --exclude='about/identity.md' \
   --exclude='about/voice.md' \

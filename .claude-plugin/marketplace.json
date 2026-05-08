@@ -1,0 +1,26 @@
+{
+  "name": "aise-tools",
+  "description": "End-to-end onboarding co-pilot for Productboard AI Success Engineers.",
+  "owner": {
+    "name": "Klara Martinez",
+    "email": "klara.martinez@productboard.com"
+  },
+  "plugins": [
+    {
+      "name": "aise-assistant",
+      "description": "End-to-end customer onboarding co-pilot for Productboard AI Success Engineers (AISEs) — prep, deliver, summarize, follow up, plan, and keep Notion in sync.",
+      "source": {
+        "source": "github",
+        "repo": "kmtz3/aise-assistant"
+      },
+      "author": {
+        "name": "Klara Martinez"
+      },
+      "homepage": "https://github.com/kmtz3/aise-assistant",
+      "repository": "https://github.com/kmtz3/aise-assistant",
+      "license": "MIT",
+      "keywords": ["productboard", "aise", "customer-success", "onboarding", "notion", "meetings"],
+      "category": "productivity"
+    }
+  ]
+}

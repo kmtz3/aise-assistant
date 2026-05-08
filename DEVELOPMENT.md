@@ -23,7 +23,40 @@ The `.plugin` file can be installed via:
 - **Cowork UI** — Settings → Extensions → upload the `.plugin` file
 - **CLI** — `claude plugin marketplace add <path> --scope user` + `claude plugin install aise-assistant@<name>`
 
-To bump the version, edit `.claude-plugin/plugin.json` → `"version"` and re-run `package.sh`.
+Version bumping is automatic — `package.sh` evaluates the git diff and bumps before building. See **Versioning** below to override.
+
+---
+
+## Versioning
+
+`package.sh` reads `git diff HEAD` on every run, classifies the changes, bumps `.claude-plugin/plugin.json` → `"version"`, then packages.
+
+| Change type | Bump |
+|---|---|
+| Skill, command, or agent **deleted** (capability removed for users) | **MAJOR** — `X+1.0.0` |
+| Skill, command, or agent **added** (new capability) | **MINOR** — `X.Y+1.0` |
+| Fix, polish, docs, schema/context/template edits, refactor | **PATCH** — `X.Y.Z+1` |
+
+**Rules:**
+- One commit, one bump level. If a change mixes additions and fixes, MINOR wins. If it mixes deletions and additions, MAJOR wins.
+- Never skip versions — increment by 1 only.
+- PATCH resets to 0 on a MINOR bump. Both MINOR and PATCH reset on a MAJOR bump.
+
+**Override** — pass `--bump major|minor|patch` to skip the auto-detect:
+
+```bash
+bash scripts/package.sh --bump minor
+```
+
+**After packaging**, commit the `plugin.json` version bump:
+
+```bash
+git add .claude-plugin/plugin.json
+git commit -m "chore: bump version to X.Y.Z"
+git push
+```
+
+Users who have the marketplace added will get the update on their next `/plugin marketplace update` or auto-update.
 
 ---
 
@@ -33,7 +66,8 @@ To bump the version, edit `.claude-plugin/plugin.json` → `"version"` and re-ru
 
 | Path | Why |
 |---|---|
-| `.git/`, `.claude/` | Dev infrastructure |
+| `.git/`, `.github/`, `.claude/` | Dev infrastructure |
+| `.claude-plugin/marketplace.json` | Marketplace catalog — not part of the installable plugin |
 | `about/identity.md`, `about/voice.md`, `about/workspace.md` | Personal files — replaced with placeholder templates from `about/templates/` at package time |
 | `skills/` | See "commands/ vs skills/" below |
 | `CLAUDE.md` | Not used in plugin installs — context is loaded per-invocation via the `aise-context` skill. Including it causes a Cowork validation failure (treated as an error in the skills/ validator). |
