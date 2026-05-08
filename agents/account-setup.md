@@ -83,9 +83,9 @@ Make all of these calls simultaneously:
   Extract: CS tier, account owner, success manager, AI Success Engineer (AISE), renewal manager, Vitally health, billing cycle, ARR, services plan, contract start/end dates. Flag any that are null.
 
 **History from previous owners:**
-- **Gong transcripts:** follow steps 1-2 of the **Transcript lookup order** in `context/project-instructions.md §3` — `meeting_lookup` is step 1 but often returns empty for inherited accounts, so fall through to the `app:gong` search + `read_document` pattern (step 2) immediately if it does.
-- `Gmail search_threads` with `[customer-domain] newer_than:730d` — pull up to 30 threads, sorted by date. Look for threads from previous AEs or predecessor AISEs on the account.
-- `Glean gmail_search` with `from:[previous-aise-email] [customer-name]` if the previous AISE is known.
+- **Gong transcripts:** follow steps 1-2 of the **Transcript lookup order** in `context/project-instructions.md §3` — `meeting_lookup` is step 1 but often returns empty for inherited accounts, so fall through to the `app:gong` search immediately if it does. For the step-2 search, use `app:gong "[Customer Name]"` — **quote the customer name** to scope results to this account only; an unquoted search returns all Gong calls. Call `read_document` on each individual Gong call URL from the results — don't read or grep the raw search results blob.
+- **Gmail (self-mode only):** `Gmail search_threads` with `[customer-domain] newer_than:730d` — pull up to 30 threads, sorted by date. **Skip this step in delegated mode** — `Gmail__search_threads` is scoped to the operator's mailbox and will always return empty for a teammate's customer emails. Use only `Glean:gmail_search` in that case.
+- `Glean gmail_search` with `from:[previous-aise-email] [customer-name]` if the previous AISE is known. In delegated mode, also search `from:[target-user-email] [customer-name]` to find emails the target user sent about this account.
 - `Glean search` — any Slack threads, Salesforce notes, Drive docs about this customer.
 
 **Notion existing state:**
@@ -179,7 +179,7 @@ Per the notion-writer-playbook: **Active Packages are financial ledger records �
 After the user approves (or says "just do it"), write in this order:
 1. Update the Customer page (`notion-update-page`, `replace_content` for empty template sections, `update_content` for targeted edits).
 2. Create the Active Package record (`notion-create-pages`, parent = Active Packages DB — see `context/notion-schema.md` for ID). Include the history summary as the page content.
-3. **Existing customer mode only:** Create one Session record per relevant session in the Sessions DB (`notion-create-pages`, parent = Sessions DB). Set the Customer relation, date, type, and write the brief + next steps as the page body under a `📋 Session Summary` heading. Never create PB-side Tasks for historical sessions.
+3. **Existing customer mode only:** Create one Session record per relevant session in the Sessions DB (`notion-create-pages`, parent = Sessions DB). After each create, immediately apply the matching Notion template (`notion-update-page`, `command: apply_template` — see `context/notion-schema.md` § Session Templates). Then fill in the template sections from the Gong call content: write a brief summary (2–3 sentences) and the source link inside the `📋 Prep — [date]` toggle body; populate **Decisions**, **Risks / Blockers**, **Action Items**, and **Next Steps** from the transcript where applicable. Never create PB-side Tasks for historical sessions.
 
 ### 6. Report in chat
 
@@ -198,6 +198,8 @@ After the user approves (or says "just do it"), write in this order:
 
 - **Don't invent** contact names, emails, titles, dates, ARR, or commitment history. Flag gaps.
 - **Gmail URL ≠ Gmail API thread ID.** If a URL is pasted (`mail.google.com/mail/u/0/#inbox/<hash>`), use `search_threads` with topic keywords to find the thread — don't pass the hash to `get_thread`.
+- **`Gmail__search_threads` is the operator's mailbox only.** In delegated mode (bulk setup for a teammate), empty Gmail results are expected and normal — not a failure to investigate. Use only `Glean:gmail_search` for email history in that case.
+- **Never grep a raw Gong search results blob.** Surface individual call URLs from the search results and call `read_document` on each. Reading the whole results file is noisy and misses content past the read window.
 - **Gong meeting_lookup often returns empty** for inherited accounts not yet in the user's calendar. Go straight to `Glean search` with `app: gong` + `read_document` pattern.
 - **Active Package is the financial ledger** — never create one without explicit approval.
 - **One active package per customer.** If `Active? = __YES__` already exists, don't create another — propose flipping the old one first.

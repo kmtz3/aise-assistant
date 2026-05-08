@@ -84,7 +84,10 @@ For every operation:
 Confirm to write?
 ```
 
-**Body content:** Add session summary, decisions, and a `**Source**` link to the Gong/transcript if available. Keep it scannable — bolded labels, bullets.
+**After the create — apply session template (mandatory):**
+Call `notion-update-page` with `command: apply_template` and the template ID matching the session's `Type` (see `context/notion-schema.md` § Session Templates). This populates the standard page structure. Skip if the page already existed (dedup hit).
+
+**Body content:** Write session summary, decisions, and a `**Source**` link inside the `📋 Prep — [date]` toggle that the template places at the top of the page. Keep it scannable — bolded labels, bullets. Populate Decisions, Risks / Blockers, and Next Steps sections from the session content.
 
 ---
 
@@ -281,7 +284,19 @@ This is how the user later traces "why did we decide this?"
 
 ## Error handling
 
-**If a Notion write fails:**
+**If a Notion call returns a 429 (rate limit):**
+
+- Wait **5 seconds**, then retry the **exact same call once**.
+- If the retry also returns 429, surface the error and stop: "Notion rate limit hit on [query/write]. Wait a moment and re-run, or reduce concurrent queries."
+- Do **not** retry more than once — backing off further is the user's call, not the agent's.
+- This applies to reads (`notion-query-data-sources`, `notion-fetch`, `notion-search`) and writes (`notion-update-page`, `notion-create-pages`) equally.
+
+**Rate limit hygiene — agents that fire multiple Notion queries:**
+
+- Fire no more than **2 Notion calls concurrently**. For agents with 3+ queries, run them in pairs with a 2-second pause between batches rather than fully parallel.
+- If a bulk operation (e.g. looping over 10+ customers) hits a 429 mid-loop, pause for **10 seconds** before continuing to the next customer.
+
+**If a Notion write fails for any other reason:**
 
 - Report the error verbatim.
 - Don't retry blindly.

@@ -106,6 +106,24 @@ Filter queries with `<field> LIKE '%<bare-uuid>%'` so they match the stored form
 - Types: `🏗️ Architecting`, `🗣️ Sync`, `🎓 Training`, `👟 Kick off`, `🔎 Discovery`, `📦 Other`
 - Statuses: `Planned`, `Delivered`, `Canceled`, `Postponed`, `Follow-up email`, `In progress`
 
+### Session Templates
+
+After creating a new Session page, immediately apply the matching Notion template using `notion-update-page` with `command: apply_template`. This gives the page its structural skeleton (Prep toggle, Agenda, type-specific sections, Decisions, Risks, Action Items, Next Steps) without hardcoding structure in agent files — update the template in Notion and all new sessions pick it up automatically.
+
+| Type | Template page ID |
+|---|---|
+| 🏗️ Architecting | `29497e9c7d4f809c9ee4f29679854d8f` |
+| 🗣️ Sync | `29497e9c7d4f8019a678e9a9a7482ce1` |
+| 🎓 Training | `29497e9c7d4f8027826af32d3597b0c1` |
+| 👟 Kick off | `29897e9c7d4f80ceafc0e320d63053a0` |
+| 🔎 Discovery | `29897e9c7d4f8085b4ddd3bff36a0fab` |
+| 📦 Other | `29497e9c7d4f8003b857eb2014893410` |
+
+**Rules:**
+- Apply only on **initial create** — the page must be empty (freshly created). The dedup check ensures existing session pages never reach this step.
+- `apply_template` appends — calling it on an empty page makes the template content the page's starting structure.
+- After applying, write prep briefs or summaries **inside the existing `📋 Prep — [date]` toggle** (placed by the template) rather than creating a new toggle.
+
 ### Create an Active Package
 - Parent: `data_source_id: 29697e9c-7d4f-8031-9f76-000b7e932b36`
 - Set `Customer` (limit 1) and `Master Package` (limit 1) on create
@@ -365,14 +383,16 @@ Task
 ## Prep pages — convention
 
 When writing a prep brief for a session:
-1. Find the Session page in Notion (by customer + date). If it doesn't exist, create it first (`Status = Planned`).
-2. Append the prep brief inside a **collapsible toggle heading** at the top of the session page body. Exact Notion-flavored markdown format:
-   ```
-   ## 📋 Prep — YYYY-MM-DD {toggle="true"}
-   [TAB]paragraph text
-   [TAB]**Bold header**
-   [TAB]- bullet
-   ```
-   Children must be tab-indented (`\t`). For sub-bullets under a numbered list item, use two tabs. **Never use `>` blockquote prefix** — each `>` renders as a separate quote block with a left border.
-3. Leave the area below the toggle for the user's real session notes.
+1. Find the Session page in Notion (by customer + date). If it doesn't exist, create it first (`Status = Planned`), then apply the matching template immediately (see § Session Templates above).
+2. Write prep content **inside the `📋 Prep — [date]` toggle** — the template places this at the top of every new session page. Use `update_content` to fill in the toggle body:
+   - Tab-indent all children (`\t`). For sub-bullets under a numbered list item, use two tabs.
+   - **Never use `>` blockquote prefix** — each `>` renders as a separate quote block with a left border.
+   - If the toggle is absent (legacy page without template), create it by appending at the top of the body:
+     ```
+     ## 📋 Prep — YYYY-MM-DD {toggle="true"}
+     [TAB]paragraph text
+     [TAB]**Bold header**
+     [TAB]- bullet
+     ```
+3. Leave the sections below the toggle (Agenda, Decisions, Risks, etc.) for live session notes.
 4. If the session is purely prep (no customer call), name the page `[PREP] …` and set `Do not count = __YES__`.

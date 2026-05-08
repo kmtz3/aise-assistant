@@ -36,6 +36,24 @@ the user's Notion user ID: `<user-uuid>` (read at runtime from `about/identity.m
 
 Every Task create must include `Customers`. For customer-tied work, use the relevant Customer page URL. For internal / non-customer-specific work (team admin, training, internal research, tooling), use the **Productboard** customer record at `https://app.notion.com/29997e9c7d4f80e6a011f053bdec1ab5`. Never leave `Customers` null — null breaks the Customer-pivot filter pattern.
 
+### Session template application (mandatory for new pages)
+
+After every successful Session `notion-create-pages` call, apply the matching Notion template:
+
+```
+notion-update-page(
+  page_id: <new session page id>,
+  command: apply_template,
+  template_id: <id from context/notion-schema.md § Session Templates>
+)
+```
+
+Look up the template ID by matching the session's `Type` value against the table in `context/notion-schema.md` § Session Templates. This populates the standard page structure (Prep toggle, Agenda, type-specific sections, Decisions, Risks, Action Items, Next Steps) without hardcoding it in agent instructions.
+
+**Skip if:** the page already existed (dedup hit) — existing pages have content and `apply_template` appends, which would corrupt the layout.
+
+After applying, write any body content (prep brief, session summary) **inside the existing `📋 Prep — [date]` toggle** rather than creating a new one.
+
 ### Verify-before-update
 
 Before any `update_properties` or `update_content` on an existing record:
@@ -128,6 +146,14 @@ Sessions are unique per (customer, date) so the bar is lower – any match defau
 If a write would contradict existing data (overwrite a decision, change a date someone else set, replace a stakeholder), **surface the conflict** and ask before proceeding. Don't silently overwrite.
 
 The ownership check above is the most important conflict gate — cross-AISE writes are now possible in the shared workspace and a missing check costs the most.
+
+---
+
+## Error handling
+
+**429 rate limit:** wait 5 seconds, retry the same call once. If the second attempt also returns 429, surface the error and stop — do not retry further.
+
+**All other errors:** report verbatim. Common causes: relation ID not found (re-resolve and retry), select value not in schema (check `notion-schema.md`), ownership mismatch (surface the conflict and wait for confirmation).
 
 ---
 

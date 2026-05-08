@@ -51,16 +51,21 @@ Structure (markdown, bold labels, bullets):
 
 ### 5. Land the prep brief in Notion
 
-- Find the Session page (query Sessions DB by customer relation + date). Create one (`Call Status = Planned`) if missing.
-- Append a **collapsible toggle heading** at the top of the page body using this exact Notion-flavored markdown format:
-  ```
-  ## 📋 Prep — YYYY-MM-DD {toggle="true"}
-  [TAB]Brief context paragraph
-  [TAB]**Section header**
-  [TAB]- bullet item
-  [TAB]- bullet item
-  ```
-  Children must be indented with a **tab character** (`\t`). For sub-bullets nested under a numbered list item, use two tabs. **Do NOT use `>` blockquote prefix on any content line** — each `>` renders as a separate quote block with a left border. Leave space below the toggle for real session notes.
+- Find the Session page (query Sessions DB by customer relation + date).
+- **If no session page exists** — create one (`Call Status = Planned`), then immediately apply the matching Notion template: call `notion-update-page` with `command: apply_template` and the template ID for the session's `Type` (see `context/notion-schema.md` § Session Templates). The template places the `📋 Prep — [date]` toggle and the standard section structure on the empty page.
+- **Write prep content into the `📋 Prep — [date]` toggle** using `update_content`:
+  - **New page (template just applied):** the toggle already exists as a placeholder — replace its empty interior with the actual prep brief.
+  - **Existing page with toggle present:** write inside the existing toggle.
+  - **Existing page with no toggle (legacy page without template):** create the toggle by prepending at the top of the body:
+    ```
+    ## 📋 Prep — YYYY-MM-DD {toggle="true"}
+    [TAB]Brief context paragraph
+    [TAB]**Section header**
+    [TAB]- bullet item
+    [TAB]- bullet item
+    ```
+  - Tab-indent all children (`\t`). For sub-bullets nested under a numbered list item, use two tabs. **Do NOT use `>` blockquote prefix** — each `>` renders as a separate quote block with a left border.
+- The sections below the toggle (Agenda, Decisions, Risks, etc.) are left blank for live session notes.
 - Do **not** set `Do not count` — this is a real session.
 - If the page is prep-only (no actual customer call), rename with `[PREP]` prefix and set `Do not count = __YES__`.
 
