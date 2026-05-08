@@ -54,6 +54,27 @@ Look up the template ID by matching the session's `Type` value against the table
 
 After applying, write any body content (prep brief, session summary) **inside the existing `📋 Prep — [date]` toggle** rather than creating a new one.
 
+### Active Package template application (mandatory for new pages)
+
+After every successful Active Package `notion-create-pages` call:
+
+```
+notion-update-page(
+  page_id: <new active package page id>,
+  command: apply_template,
+  template_id: 29697e9c7d4f806fb251df6f1d20bf88
+)
+```
+
+This places three structural toggles on the page:
+- `🗺️ Program Plan` — placeholder; engagement-planner adds the dated plan as a child toggle inside this section
+- `🧠 Working Notes` — operational memory; session-summarizer, post-session-debrief, and context-keeper update sub-sections here after every session
+- `📋 Account History` — account-setup writes here for inherited accounts
+
+All agents that read Working Notes assume this structure is present. **Skip if the page already existed.**
+
+After applying, write into the relevant toggle using `update_content` rather than appending new toggles. For legacy pages without the structure, create the missing toggle(s) on first write.
+
 ### Verify-before-update
 
 Before any `update_properties` or `update_content` on an existing record:

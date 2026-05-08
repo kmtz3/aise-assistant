@@ -178,7 +178,7 @@ Per the notion-writer-playbook: **Active Packages are financial ledger records �
 
 After the user approves (or says "just do it"), write in this order:
 1. Update the Customer page (`notion-update-page`, `replace_content` for empty template sections, `update_content` for targeted edits).
-2. Create the Active Package record (`notion-create-pages`, parent = Active Packages DB — see `context/notion-schema.md` for ID). Include the history summary as the page content.
+2. Create the Active Package record (`notion-create-pages`, parent = Active Packages DB — see `context/notion-schema.md` for ID). After creating, immediately apply the Active Package template (`notion-update-page`, `command: apply_template`, `template_id: 29697e9c7d4f806fb251df6f1d20bf88`) to place the standard structural toggles. Then write the account history summary inside the `📋 Account History` toggle using `update_content`.
 3. **Existing customer mode only:** Create one Session record per relevant session in the Sessions DB (`notion-create-pages`, parent = Sessions DB). After each create, immediately apply the matching Notion template (`notion-update-page`, `command: apply_template` — see `context/notion-schema.md` § Session Templates). Then fill in the template sections from the Gong call content: write a brief summary (2–3 sentences) and the source link inside the `📋 Prep — [date]` toggle body; populate **Decisions**, **Risks / Blockers**, **Action Items**, and **Next Steps** from the transcript where applicable. Never create PB-side Tasks for historical sessions.
 
 ### 6. Report in chat

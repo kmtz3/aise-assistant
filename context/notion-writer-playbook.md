@@ -232,6 +232,7 @@ Overwrite?
 
 1. Confirm which Master Package template applies (named pattern like `Essential Services — 40 hrs` or `Enterprise — 12 months`).
 2. Create Active Package with: `Name`, `Customer` relation, `Master Package` relation, `Start Date`, `End Date`, `ARR`, `Active?: true`, `Current Account Owner: <user-uuid>`, `Status: Preparing` (or `Not started` / `Activating` / `Adopting` as appropriate).
+2b. Apply the Active Package template immediately after create: `notion-update-page`, `command: apply_template`, `template_id: 29697e9c7d4f806fb251df6f1d20bf88`. This places the `🗺️ Program Plan`, `🧠 Working Notes`, and `📋 Account History` structural toggles on the new page (see `context/notion-schema.md` § Active Package Template).
 3. Flip any previous Active Package for that customer to `Active?: false` and `Status: Service Quota Used` (credits exhausted but contract live) or `Package Expired` (contract end date passed — true terminal state).
 
 **Rule:** Always confirm with the user before creating or modifying Active Packages. This is the financial ledger — the stakes of getting it wrong are higher than any other operation in this playbook.
@@ -356,7 +357,7 @@ Last updated: YYYY-MM-DD
 - Update the relevant sub-section only (e.g., add a bullet to **Program state** or **Open risks**).
 - Update the `Last updated: YYYY-MM-DD` line on every write.
 - Append to lists — don't replace existing bullets unless they're superseded (in which case strike through or remove the old entry and add the new one).
-- If the `🧠 Working Notes` toggle doesn't exist yet on an Active Package page, create it (e.g., when running `/customer-plan-engagement` for the first time).
+- The `🧠 Working Notes` toggle is placed by the Active Package template on all new pages. If absent (legacy page without template), create it on first write.
 
 **Who writes:**
 

@@ -131,6 +131,25 @@ After creating a new Session page, immediately apply the matching Notion templat
 - **`Current Account Owner`** — set to the current user on create (`["<user-uuid>"]`). The Resync button on the Customer page keeps this in sync afterwards, but on initial create the button hasn't fired, so set it explicitly.
 - `Status` options: `Not started`, `Renewal`, `Preparing`, `Activating`, `Adopting`, `Package Expired`, `Service Quota Used`
 - **`Status = Service Quota Used` ≠ inactive.** It means all contracted architecting and training sessions are exhausted. The customer retains AISE ownership; recurring syncs and QBRs continue. No new architecting or training unless they purchase more. When you see `Status = Service Quota Used` with `Active? = YES`, treat as **post-services / sync-rhythm** mode, not wind-down. Do not flag this as a contradiction unless the package is also `Active? = NO` and there's no upcoming sync cadence. **`Package Expired` is the only true terminal state** — contract end date passed; flip `Active? = NO`.
+- **Apply template after create:** immediately after `notion-create-pages`, call `notion-update-page` with `command: apply_template, template_id: 29697e9c7d4f806fb251df6f1d20bf88`. This places three structural toggles on the page (see § Active Package Template below).
+
+### Active Package Template
+
+After creating a new Active Package page, immediately apply the template using `notion-update-page` with `command: apply_template`. This places three structural toggles without hardcoding them in agent files — update the template in Notion and all new Active Packages pick it up automatically.
+
+**Template ID:** `29697e9c7d4f806fb251df6f1d20bf88`
+
+| Toggle | Purpose |
+|---|---|
+| `🗺️ Program Plan` | Placeholder; `engagement-planner` writes the full dated plan as a child toggle inside this section |
+| `🧠 Working Notes` | Operational memory with Program state / Open risks / Terminology / Discoveries sub-sections; updated after every session |
+| `📋 Account History` | `account-setup` writes here for inherited accounts; blank for new accounts |
+
+**Rules:**
+- Apply only on **initial create** — the page must be empty (freshly created).
+- `apply_template` appends — calling it on an empty page makes the template content the page's starting structure.
+- Write into the relevant toggle using `update_content` rather than appending new toggles. For **Working Notes**: update only the changed sub-section. For **Program Plan**: add the dated plan as a child toggle inside `🗺️ Program Plan`. For **Account History**: write the summary inside `📋 Account History`.
+- On legacy pages without the template structure, create the missing toggle(s) on first write.
 
 ### Create a Task (PB-side actions only)
 - Parent: `data_source_id: 29397e9c-7d4f-808f-bcd4-000b66a94678`
