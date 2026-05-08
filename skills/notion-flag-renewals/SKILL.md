@@ -9,8 +9,18 @@ Do **not** spawn a subagent — execute the steps below inline as the main assis
 
 ## Steps
 
-**1. Resolve identity.**
-Read `<PLUGIN_DATA_DIR>/about/identity.md` (path via `PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir")`). Extract `notion_user_id` as `<user-uuid>`.
+**1. Resolve identity (--mine only — skip entirely for --global).**
+
+Only needed when scope is `--mine` (the default). Try in order until `notion_user_id` is found:
+
+1. `PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir")` → read `$PLUGIN_DATA_DIR/about/identity.md` → extract `notion_user_id`.
+2. Glob for `about/identity.md` under known plugin data directories:
+   - `~/Library/Application Support/Claude/local-agent-mode-sessions/*/rpm/plugin_*/about/identity.md`
+   - `/var/folders/**/aise-assistant*/about/identity.md`
+3. Fall back: call `notion-get-users` and match against the userEmail `klara.martinez@productboard.com` from system context to get the Notion user ID.
+
+If all three paths fail, surface this message and stop:
+> ⚠️ Identity not set up — run `/assistant-setup` first, or use `--global` to scan all packages.
 
 **2. Determine scope and parameters.**
 - `--mine` (default): filter `Current Account Owner LIKE '%<user-uuid>%'`
@@ -18,24 +28,40 @@ Read `<PLUGIN_DATA_DIR>/about/identity.md` (path via `PLUGIN_DATA_DIR=$(cat "$HO
 - `--days N`: flag packages ending within N days (default: 90)
 - `--dry-run`: preview only — report what would change without writing anything
 
-**3. Query Active Packages** (`collection://29697e9c-7d4f-8031-9f76-000b7e932b36`):
+Compute `<today>` (today's date as `YYYY-MM-DD`) and `<cutoff>` (`<today>` + N days) before building the query.
+
+**3. Query Active Packages** (`collection://29697e9c-7d4f-8031-9f76-000b7e932b36`) with server-side date filtering:
+
 ```sql
+-- For --mine:
 SELECT id, Name, Status, "date:End Date:start", "Current Account Owner"
 FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
 WHERE "Active?" = '__YES__'
-[AND "Current Account Owner" LIKE '%<user-uuid>%']
+  AND "date:End Date:start" IS NOT NULL
+  AND "date:End Date:start" > '<today>'
+  AND "date:End Date:start" <= '<cutoff>'
+  AND Status != 'Renewal'
+  AND Status != 'Package Expired'
+  AND "Current Account Owner" LIKE '%<user-uuid>%'
+LIMIT 500
+
+-- For --global (omit the owner filter):
+SELECT id, Name, Status, "date:End Date:start", "Current Account Owner"
+FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
+WHERE "Active?" = '__YES__'
+  AND "date:End Date:start" IS NOT NULL
+  AND "date:End Date:start" > '<today>'
+  AND "date:End Date:start" <= '<cutoff>'
+  AND Status != 'Renewal'
+  AND Status != 'Package Expired'
 LIMIT 500
 ```
 
-**4. Filter client-side.** For each returned package, apply all of the following:
-- `End Date` is set and parses as a valid `YYYY-MM-DD` date
-- `End Date` is **after** today (not already expired)
-- `End Date` is within N days from today
-- `Status` is **not** already `Renewal`
+All date and status filtering is done in the query — no client-side filtering step needed. The result set is the exact list of packages to flag.
 
-**5. If `--dry-run`**: report the list of packages that would be updated (name, end date, days remaining). Stop here — do not write anything.
+**4. If `--dry-run`**: report the list of packages that would be updated (name, end date, days remaining). Stop here — do not write anything.
 
-**6. Otherwise, update each matching package.** Call `notion-update-page` with:
+**5. Otherwise, update each matching package.** Call `notion-update-page` with:
 ```
 command: update_properties
 properties: { "Status": "Renewal" }
@@ -43,11 +69,11 @@ content_updates: []
 ```
 Sleep 380 ms between each write.
 
-**7. Report in chat.**
+**6. Report in chat.**
 - Packages updated (name, end date, days remaining)
-- Packages skipped — already `Renewal`
-- Packages skipped — no end date set
-- Packages skipped — end date already past (`Package Expired`)
+- Packages skipped — already `Renewal` (filtered out by query)
+- Packages skipped — no end date set (filtered out by query)
+- Packages skipped — end date already past (`Package Expired`, filtered out by query)
 - Any write failures (by package name)
 
 ## Notes
@@ -55,6 +81,15 @@ Sleep 380 ms between each write.
 - Valid `Status` values for Active Packages: `Not started`, `Renewal`, `Preparing`, `Activating`, `Adopting`, `Package Expired`, `Service Quota Used`.
 - Do **not** flag packages with `Status = Package Expired` — the contract end date has already passed.
 - `date:End Date:start` is the SQL column name; its value is a `YYYY-MM-DD` string.
+- The skill's base directory is shown in the `Base directory:` header line of the skill invocation — sibling `about/` paths can be derived from it.
+
+## Plugin data directory locations (macOS)
+The persistent plugin data dir (written by the SessionStart hook) is at:
+```
+~/.claude/aise-assistant.datadir  →  contains the full path, e.g.:
+~/Library/Application Support/Claude/local-agent-mode-sessions/<session>/rpm/plugin_<id>/
+```
+If the pointer file is absent, glob for `about/identity.md` under `~/Library/Application Support/Claude/local-agent-mode-sessions/`.
 
 ## Flags
 - `--mine` — scope to the current user's packages (default)

@@ -5,6 +5,17 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [2.2.1] — 2026-05-09
+
+### Fixed
+- `notion-flag-renewals`: identity resolution is now conditional — `--global` skips Step 1 entirely (no file lookup)
+- `notion-flag-renewals`: graceful fallback for `--mine` when `.datadir` or `notion_user_id` is missing — surfaces a clear inline message instead of a broken query
+- `notion-flag-renewals`: three-path identity resolution (`.datadir` → glob plugin dirs → `notion-get-users` + userEmail)
+- `notion-flag-renewals`: date and status filtering pushed into the SQL query — collapses 3 paginated round-trips into 1 targeted fetch
+- `notion-flag-renewals`: document known macOS plugin data dir paths directly in the skill
+
+---
+
 ## [2.2.0] — 2026-05-09
 
 ### Added
