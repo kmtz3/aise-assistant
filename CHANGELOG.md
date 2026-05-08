@@ -5,6 +5,13 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [2.2.5] — 2026-05-09
+
+### Changed
+- `notion-schema.md` + `agents/notion-writer.md`: Tasks created after a session must now set `Consumed Package` — inherit from `Source Call` if present, otherwise apply the same date-matching logic as Sessions (active package covering today → most-recently-ended inactive package → leave empty)
+
+---
+
 ## [2.2.4] — 2026-05-09
 
 ### Fixed

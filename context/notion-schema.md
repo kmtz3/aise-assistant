@@ -172,6 +172,7 @@ After creating a new Active Package page, immediately apply the template using `
 - **Set `Customers` relation — never leave null.** For customer-tied tasks, use the relevant Customer page URL. For **internal / non-customer-specific tasks** (team admin, training, internal research, tooling work), use the **Productboard** customer record: `https://app.notion.com/29997e9c7d4f80e6a011f053bdec1ab5`. The pivot-through-Customer filter pattern relies on this — null Customers means the task disappears from filtered views.
 - **Set `Owner`** to the creator (the current user when they are the one logging it: `["<user-uuid>"]`). On a shared workspace, `Owner` is the "who created this task" signal — distinguishes the user's own tasks from inherited ones during handoffs.
 - **Set `Current Account Owner`** to the current user explicitly on create. The Resync button propagates afterwards but on initial create it hasn't fired yet.
+- **Set `Consumed Package`** using the same date-matching rule as Sessions: (1) if the task has a `Source Call`, inherit that session's `Consumed Package` directly; (2) otherwise, find the customer's Active Package whose `Start Date` ≤ today ≤ `End Date`; (3) if no package covers today, use the most-recently-ended inactive package for the same customer; (4) if nothing matches, leave empty. Never assign by recency alone.
 - **Never create Tasks for customer-side actions** — those belong in summaries/follow-ups only.
 - `Priority`: `1`, `2`, or `3`
 
