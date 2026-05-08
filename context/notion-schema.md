@@ -205,6 +205,31 @@ WHERE Owner LIKE '%<user-uuid>%'
 ```
 Use just `Owner` for "tasks I logged" (the creator-only filter). Use just `Current Account Owner` for "tasks on my accounts regardless of who created them" (catches inherited tasks).
 
+### Customer Template
+
+Customer pages are created by users via the Notion UI, not by agents. The template (`29397e9c7d4f8005b04bef3858ece3e0`) pre-populates the page structure — agents update into it rather than applying it.
+
+**`apply_template` does NOT apply here.** Agents update existing Customer pages only (`update_content` / `update_properties`).
+
+The template's `# About` section has five labeled H2 subsections that agents target by heading text:
+
+| Section heading | What agents write there |
+|---|---|
+| `## 🏢 Company Overview` | What they do, industry, scale, HQ, revenue / ownership (1–4 sentences) |
+| `## 🔗 Workspace & Plan` | PB workspace URL, plan name, seat count, billing cycle, contract start/end |
+| `## 👥 Key Contacts` | Name, title, email — one bullet per contact, confirmed sources only |
+| `## 🤝 PB Account Team` | AISE, AE, Renewal Manager, Predecessor AISE — from Salesforce |
+| `## 💚 Health & Lifecycle` | Vitally health score, account status, renewal date |
+
+Below the labeled sections, the template also has human-editable visual sections (`Objectives`, `Milestones`, `Product Deep Dive`, `Tools Overview`, `Product Org`, `Sessions Progress`) — agents do **not** write to these.
+
+**Write pattern:** use `update_content` with the exact heading text as `old_str` anchor. For example, to fill Company Overview:
+```
+old_str: "## 🏢 Company Overview\n*What they do, industry, scale, HQ, revenue / ownership.*"
+new_str: "## 🏢 Company Overview\n[filled content]"
+```
+If a section is already populated (re-setup or update scenario), replace the existing content rather than appending.
+
 ---
 
 ## Customers — Field Reference

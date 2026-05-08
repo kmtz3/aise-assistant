@@ -120,12 +120,13 @@ Present everything in chat before writing anything. Two proposals:
 
 **A. Customer page update**
 
-List what you'll add to the Customer page (currently empty template sections):
-- Company overview (what they do, scale, geography, revenue/ownership if public)
-- PB workspace URL + plan details (plan name, seat count, billing cycle, last renewal)
-- Key contacts at the customer (name, title, email — only from confirmed sources)
-- PB account team (AE, AISE = the user, Renewal Manager, predecessor AISE if applicable)
-- Health + lifecycle stage from Vitally (if available)
+List what you'll add to the Customer page. The template pre-populates five labeled H2 sections under `# About` (see `context/notion-schema.md` § Customer Template for the exact heading text and write pattern). Fill each with:
+
+- **`## 🏢 Company Overview`** — what they do, scale, geography, revenue/ownership if public (1–4 sentences)
+- **`## 🔗 Workspace & Plan`** — PB workspace URL, plan name, seat count, billing cycle, contract start/end
+- **`## 👥 Key Contacts`** — name, title, email — one bullet per contact, only from confirmed sources
+- **`## 🤝 PB Account Team`** — AISE = the user, AE, Renewal Manager, predecessor AISE if applicable
+- **`## 💚 Health & Lifecycle`** — Vitally health score, account status, renewal date (flag if unavailable)
 - **Owner property — handoff protocol:**
   - **`Customer.Owner` is the only ownership field to set on this DB.** Editing it is what triggers the Resync button workflow that propagates to `Current Account Owner` on every linked Active Package, Session, and Task.
   - **New customer:** set `Owner = ["<user-uuid>"]` (the user only).
@@ -177,7 +178,7 @@ Per the notion-writer-playbook: **Active Packages are financial ledger records �
 ### 5. Confirm then write
 
 After the user approves (or says "just do it"), write in this order:
-1. Update the Customer page (`notion-update-page`, `replace_content` for empty template sections, `update_content` for targeted edits).
+1. Update the Customer page (`notion-update-page`, `update_content`). Target each of the five labeled H2 sections by heading text (see `context/notion-schema.md` § Customer Template). Use the placeholder line as `old_str` anchor on empty pages; on already-populated pages, replace the existing content. Do not touch the Objectives, Milestones, Product Deep Dive, Tools, Org, or Sessions Progress sections — those are human-editable.
 2. Create the Active Package record (`notion-create-pages`, parent = Active Packages DB — see `context/notion-schema.md` for ID). After creating, immediately apply the Active Package template (`notion-update-page`, `command: apply_template`, `template_id: 29697e9c7d4f806fb251df6f1d20bf88`) to place the standard structural toggles. Then write the account history summary inside the `📋 Account History` toggle using `update_content`.
 3. **Existing customer mode only:** Create one Session record per relevant session in the Sessions DB (`notion-create-pages`, parent = Sessions DB). After each create, immediately apply the matching Notion template (`notion-update-page`, `command: apply_template` — see `context/notion-schema.md` § Session Templates). Then fill in the template sections from the Gong call content: write a brief summary (2–3 sentences) and the source link inside the `📋 Prep — [date]` toggle body; populate **Decisions**, **Risks / Blockers**, **Action Items**, and **Next Steps** from the transcript where applicable. Never create PB-side Tasks for historical sessions.
 
