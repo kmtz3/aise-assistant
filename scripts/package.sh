@@ -49,9 +49,11 @@ fi
 # ---------------------------------------------------------------------------
 # Auto-bump version based on git diff vs HEAD (or --bump override)
 # Rules (from DEVELOPMENT.md):
-#   MAJOR — any skill/command/agent deleted (capability removed)
-#   MINOR — any skill/command/agent added (new capability)
-#   PATCH — everything else (fixes, docs, schema, context updates)
+#   MAJOR — any skill/command/agent ADDED or DELETED (capability roster changed)
+#   MINOR — functional tweak to existing capabilities → pass --bump minor
+#   PATCH — behavior fix → default when no roster change detected
+# MINOR vs PATCH cannot be inferred from diff alone; default to PATCH and
+# use --bump minor when shipping new functionality within existing capabilities.
 # ---------------------------------------------------------------------------
 CURRENT_VERSION=$(python3 -c "import json; print(json.load(open('$PLUGIN_DIR/.claude-plugin/plugin.json'))['version'])")
 IFS='.' read -r VER_MAJOR VER_MINOR VER_PATCH <<< "$CURRENT_VERSION"
@@ -61,33 +63,26 @@ if [[ -n "$BUMP_OVERRIDE" ]]; then
   BUMP_REASON="(manual override via --bump)"
 else
   BUMP="patch"
-  BUMP_REASON=""
+  BUMP_REASON="(no capability roster changes detected — use --bump minor for functional tweaks)"
 
   # Collect changed files: git diff vs HEAD + untracked files
   DIFF_STATUS=$(git -C "$PLUGIN_DIR" diff HEAD --name-status 2>/dev/null || true)
   UNTRACKED=$(git -C "$PLUGIN_DIR" ls-files --others --exclude-standard 2>/dev/null | sed 's/^/A\t/' || true)
   ALL_CHANGES=$(printf '%s\n%s' "$DIFF_STATUS" "$UNTRACKED")
 
-  DELETED_CAPS=""
-  ADDED_CAPS=""
+  ROSTER_CHANGES=""
   while IFS=$'\t' read -r status file; do
     [[ -z "$file" ]] && continue
     if echo "$file" | grep -qE '^(skills|commands|agents)/[^/]+'; then
       case "$status" in
-        D) DELETED_CAPS="$DELETED_CAPS $file" ;;
-        A) ADDED_CAPS="$ADDED_CAPS $file" ;;
+        A|D) ROSTER_CHANGES="$ROSTER_CHANGES [$status] $file" ;;
       esac
     fi
   done <<< "$ALL_CHANGES"
 
-  if [[ -n "$DELETED_CAPS" ]]; then
+  if [[ -n "$ROSTER_CHANGES" ]]; then
     BUMP="major"
-    BUMP_REASON="(capability removed:$DELETED_CAPS)"
-  elif [[ -n "$ADDED_CAPS" ]]; then
-    BUMP="minor"
-    BUMP_REASON="(capability added:$ADDED_CAPS)"
-  else
-    BUMP_REASON="(no capability additions or removals detected)"
+    BUMP_REASON="(capability added or removed:$ROSTER_CHANGES)"
   fi
 fi
 

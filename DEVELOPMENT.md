@@ -31,21 +31,22 @@ Version bumping is automatic — `package.sh` evaluates the git diff and bumps b
 
 `package.sh` reads `git diff HEAD` on every run, classifies the changes, bumps `.claude-plugin/plugin.json` → `"version"`, then packages.
 
-| Change type | Bump |
-|---|---|
-| Skill, command, or agent **deleted** (capability removed for users) | **MAJOR** — `X+1.0.0` |
-| Skill, command, or agent **added** (new capability) | **MINOR** — `X.Y+1.0` |
-| Fix, polish, docs, schema/context/template edits, refactor | **PATCH** — `X.Y.Z+1` |
+| Change type | Bump | Auto-detected? |
+|---|---|---|
+| Skill, command, or agent **added or deleted** (capability roster changes) | **MAJOR** — `X+1.0.0` | Yes |
+| Functional tweak to an existing capability (new behavior within a skill/agent) | **MINOR** — `X.Y+1.0` | No — pass `--bump minor` |
+| Bug fix or behavior correction, no new functionality | **PATCH** — `X.Y.Z+1` | Default |
 
 **Rules:**
-- One commit, one bump level. If a change mixes additions and fixes, MINOR wins. If it mixes deletions and additions, MAJOR wins.
 - Never skip versions — increment by 1 only.
-- PATCH resets to 0 on a MINOR bump. Both MINOR and PATCH reset on a MAJOR bump.
+- MINOR and PATCH reset to 0 on a MAJOR bump. PATCH resets to 0 on a MINOR bump.
+- MAJOR auto-detection wins over any manual default — if the diff shows a skill/command/agent added or removed, it bumps MAJOR regardless.
 
-**Override** — pass `--bump major|minor|patch` to skip the auto-detect:
+**Override** — pass `--bump major|minor|patch` to skip auto-detect:
 
 ```bash
-bash scripts/package.sh --bump minor
+bash scripts/package.sh --bump minor   # functional tweak to existing capabilities
+bash scripts/package.sh --bump patch   # force patch even if roster changed (rare)
 ```
 
 **After packaging**, commit the `plugin.json` version bump:
