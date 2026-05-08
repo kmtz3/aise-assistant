@@ -1,0 +1,18 @@
+# Personal / per-install files — never commit these
+about/identity.md
+about/voice.md
+about/workspace.md
+
+# Local Claude workspace settings (contains personal email + permissions)
+.claude/
+
+# macOS
+.DS_Store
+
+# Build artifacts
+*.plugin
+dist/
+
+# Runtime output dirs (generated per-user)
+diagrams/
+memory/
