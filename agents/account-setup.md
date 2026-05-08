@@ -82,7 +82,7 @@ Make all of these calls simultaneously:
   Extract: CS tier, account owner, success manager, AI Success Engineer (AISE), renewal manager, Vitally health, billing cycle, ARR, services plan, contract start/end dates. Flag any that are null.
 
 **History from previous owners:**
-- `Glean search` with `app: gong` + customer name — find Gong call URLs. Then call `read_document` on each URL to get full transcripts. Note: `meeting_lookup` often returns empty for accounts not yet in the user's calendar — go straight to the search + read_document pattern.
+- **Gong transcripts:** follow steps 1-2 of the **Transcript lookup order** in `context/project-instructions.md §3` — `meeting_lookup` is step 1 but often returns empty for inherited accounts, so fall through to the `app:gong` search + `read_document` pattern (step 2) immediately if it does.
 - `Gmail search_threads` with `[customer-domain] newer_than:730d` — pull up to 30 threads, sorted by date. Look for threads from previous AEs or predecessor AISEs on the account.
 - `Glean gmail_search` with `from:[previous-aise-email] [customer-name]` if the previous AISE is known.
 - `Glean search` — any Slack threads, Salesforce notes, Drive docs about this customer.

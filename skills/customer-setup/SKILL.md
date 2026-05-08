@@ -18,7 +18,7 @@ Read the procedure in `agents/account-setup.md` and execute it inline as the mai
 3. **Researches in parallel:**
    - Company overview via web search (industry, scale, geography, ownership)
    - Salesforce via Glean — plan, seat count, AE, AISE, renewal manager, health, billing cycle
-   - Gong history — searches Glean with `app:gong` + customer name, then `read_document` on each call URL for full transcripts (note: `meeting_lookup` is unreliable for inherited accounts)
+   - Gong history — follows steps 1-2 of the **Transcript lookup order** in `context/project-instructions.md §3` (`meeting_lookup` often returns empty for inherited accounts — fall through to the `app:gong` search + `read_document` step immediately)
    - Gmail history — `search_threads` with the customer domain, broader date range, including threads from previous AEs / predecessor AISEs
    - Notion — any existing sessions, tasks, or contacts already in the tracker
 

@@ -11,17 +11,9 @@ Customer (name or shorthand) and/or a session identifier (date, type, or Notion 
 
 ## Procedure
 
-### 1. Find the transcript / notes (independently, in this order)
+### 1. Find the transcript / notes (independently)
 
-1. **Glean `meeting_lookup`** — primary. Gong recordings and transcripts surface here.
-2. **Glean `search` with `app:gong`** — if `meeting_lookup` returns empty, search Glean with `app: gong` and the customer name. This surfaces Gong call URLs. Then call `read_document` on each URL to get the full transcript.
-3. **Notion `query-meeting-notes`** — Notion's meeting notes database.
-4. **Notion search** — check the Session page body for notes the user may have dropped in manually, plus adjacent pages ("Follow-up", customer account page).
-5. **Glean `gmail_search`** or Gmail `search_threads` — follow-up threads sometimes contain recap notes.
-6. **Glean `search` + `chat`** — fallback general search on customer + date.
-7. If everything above fails, ask the user once: "Couldn't find notes/transcript for [session]. Drop a link or paste?"
-
-Cross-reference across sources. If Gong says X and the user's notes say Y, flag it — don't silently pick.
+Follow the **Transcript lookup order** in `context/project-instructions.md §3`. Cross-reference across sources — if Gong says X and the user's notes say Y, flag the conflict, don't silently pick one.
 
 **Ownership check (mandatory):** Once the customer is identified, fetch the Customer page `Owner` field. If it does not contain the user's Notion ID (per `about/identity.md`) (`<user-uuid>`), do **not** continue silently — the workspace is shared with other PB AISEs and this may be a teammate's account. Surface: "<Customer> has Owner = [list]; you're not in it. Take ownership now or stop?". Wait for the user's call.
 

@@ -56,6 +56,20 @@ When I reference a customer by name or shorthand ("the Acme discovery call", "my
 
 Also search past conversations (`conversation_search`) — I may have worked on this customer before in a prior chat.
 
+### Transcript lookup order
+
+When finding notes or a transcript for a specific session, try these sources in order. Never ask the user to paste what you can retrieve.
+
+1. **Glean `meeting_lookup`** — primary; Gong recordings and transcripts surface here. For inherited accounts not yet in the user's calendar, this often returns empty — fall through to step 2 immediately rather than retrying.
+2. **Glean `search` with `app:gong`** + `read_document` — search Glean with `app:gong` + customer name to surface Gong call URLs, then call `read_document` on each URL to get the full transcript.
+3. **Notion `query-meeting-notes`** — Notion's meeting notes database.
+4. **Notion search** — check the Session page body for notes dropped in manually, plus adjacent pages ("Follow-up", customer account page).
+5. **Glean `gmail_search`** / Gmail `search_threads` — follow-up threads sometimes contain recap notes.
+6. **Glean `search` + `chat`** — fallback general search on customer + date.
+7. If everything above fails, ask the user once: "Couldn't find notes/transcript for [session]. Drop a link or paste?"
+
+Cross-reference across sources. If Gong says X and user notes say Y, flag the conflict — don't silently pick one.
+
 ### Don't ask me for context I can retrieve
 
 If I say "prep me for the Foundations session with Acme tomorrow," don't ask me who Acme is or what's happened so far. Search first. If after searching you still can't find what you need, then ask — specifically, by name.

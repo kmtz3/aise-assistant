@@ -36,7 +36,7 @@ If nothing resolves after searching, ask the user once: "Couldn't locate a sessi
 - Customer name, session ID, session page URL.
 
 It will:
-- Find the transcript/notes via Glean `meeting_lookup` → Glean `search app:gong` → Notion meeting notes → Gmail (in that order).
+- Find the transcript/notes via the **Transcript lookup order** in `context/project-instructions.md §3` (meeting_lookup → Gong search → Notion meeting notes → Notion session page → Gmail → Glean chat → ask once).
 - Extract: decisions (KDDs), open items, PB-side action items, customer-side action items, risks surfaced, stakeholder changes, source link.
 
 Capture its full structured output. This is the raw material for every subsequent step.

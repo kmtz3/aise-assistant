@@ -9,7 +9,7 @@ If no argument is given, check the calendar for today's and yesterday's delivere
 
 Read the procedure in `agents/session-summarizer.md` and execute it inline as the main assistant — do not try to spawn `session-summarizer` as a subagent (custom agents in this plugin are procedure documents, not registered subagent types). The steps:
 
-1. Find the transcript/notes **without asking the user to paste** — tries Glean `meeting_lookup` (Gong) → Notion meeting notes → Notion session page body → Gmail threads → Glean general search. Only asks if all fail.
+1. Find the transcript/notes **without asking the user to paste** — follow the **Transcript lookup order** in `context/project-instructions.md §3` (meeting_lookup → Gong search → Notion meeting notes → session page body → Gmail → Glean chat → ask once).
 2. Extract decisions (KDDs), open items, action items (split PB-side vs Customer-side), risks, stakeholder changes.
 3. Propose Notion updates:
    - Update the Session page (status → Delivered, summary appended to body).
