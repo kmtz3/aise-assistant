@@ -5,6 +5,15 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [4.0.0] — 2026-05-09
+
+### Added
+- `skills/report/SKILL.md`: new `/report` command with two modes — `--customer <name>` (single-account leadership snapshot) and `--aise [me | <name>]` (portfolio summary for any AISE, targeting by name via `notion-get-users`)
+- `agents/report-builder.md`: full procedure for both report modes — Notion data pull (Customer, Active Package, Sessions, Tasks), supplementary Glean/Gmail signals for `--customer`, attention queue scoring and portfolio table for `--aise`, credit burn trajectory, cadence health, velocity stats, and renewals window; read-only across all tools
+- `CLAUDE.md`: registered `/report` in the Standalone commands table and `report-builder` in the Agents table
+
+---
+
 ## [2.4.0] — 2026-05-09
 
 ### Changed

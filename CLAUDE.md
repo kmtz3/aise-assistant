@@ -141,6 +141,8 @@ Grouped by family. Type `/<family>-` in autocomplete to see siblings.
 |---|---|
 | `/support-hub <query>` | Search support.productboard.com for official answers to customer questions — returns sourced doc excerpts + links. |
 | `/daily-brief [--date YYYY-MM-DD] [--open] [--no-blocks]` | Pull today's meetings + open Tasks, flag tomorrow's sessions needing prep, auto-create calendar focus blocks for missing prep, and render a styled HTML briefing page to `~/Desktop/`. |
+| `/report --customer <customer>` | Leadership-ready account snapshot: program health, credit burn, recent sessions, open items, signals, and next step. Read-only. |
+| `/report --aise [me \| <name>]` | Portfolio summary for an AISE: attention queue, per-account table with health signals, velocity, and renewals due. Read-only. |
 
 Full spec per skill in [`skills/`](skills/).
 
@@ -175,6 +177,7 @@ Full spec per skill in [`skills/`](skills/).
 | `bulk-account-setup` | Executes `/bulk-account-setup`. Admin/reorg task: queries all customers owned by the target user (self or a named teammate), checks setup state (no Active Package / stub / already set up), presents a queue with one confirmation gate, then runs the full `account-setup` procedure sequentially for each account that needs it. In delegated mode (targeting a teammate), writes ownership fields using the target user's UUID, not the operator's. |
 | `notion-ask` | Executes `/notion-ask`. Reads `context/notion-schema.md` as the canonical source to answer questions about DB structure, field fill requirements, auto-calculated fields, and interconnections. Does live Notion queries only when a specific customer is named or the question requires real-value verification. |
 | `daily-brief` | Pulls today's schedule and open tasks, flags tomorrow's unprepped sessions, creates calendar prep blocks, and renders a styled HTML daily briefing page saved to `~/Desktop/`. |
+| `report-builder` | Executes `/report`. Two modes: `--customer` (single-account snapshot with program health, credit burn, sessions, risks, next step) and `--aise` (portfolio summary for a specific AISE with attention queue, per-account table, velocity, renewals). Read-only — no Notion writes, no drafts. |
 
 Full spec per agent in [`agents/`](agents/).
 
