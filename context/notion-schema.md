@@ -15,7 +15,7 @@ Six databases. One hub.
 - **Tasks** — an action item. Can also burn credit from an Active Package.
 - **Contacts** — people at customer accounts. Attend sessions, own tasks.
 
-Ledger flow: **Session** (or Task) → `Consumed Package` → **Active Package** → formulas calculate burn → rolls up to **Customer** via `Active for (1:N)` / `Active Package` (Customer backlink).
+Ledger flow: **Session** (or Task) → `Consumed Package` → **Active Package** → formulas calculate burn → rolls up to **Customer** via `All packages` rollup and `Current package` formula (Formulas 2.0).
 
 `Do not count` checkbox on Sessions/Tasks excludes from burn calculations (kickoffs, internal sessions, prep pages, etc.).
 
@@ -141,9 +141,8 @@ After creating a new Session page, immediately apply the matching Notion templat
 
 ### Create an Active Package
 - Parent: `data_source_id: 29697e9c-7d4f-8031-9f76-000b7e932b36`
-- Set `Customer (M:N)` and `Master Package` (limit 1) on create. `Customer (M:N)` is the **permanent** link — always set, never cleared.
-- Set `Active for (1:N)` on create **only if** `Start Date ≤ today ≤ End Date` (package is live now). If the dates are future or past, leave `Active for (1:N)` empty.
-- On expiry (flipping `Active?` = `__NO__` / Status = `Package Expired`): **clear** `Active for (1:N)` while leaving `Customer (M:N)` intact.
+- Set `Customer` and `Master Package` (limit 1) on create. `Customer` is the **sole** customer relation — always set, never cleared.
+- On expiry (flipping `Active?` = `__NO__` / Status = `Package Expired`): no relation fields need clearing. The `Current package` formula on the Customer page stops surfacing the package automatically once `Active? = __NO__`.
 - `Active?` = `__YES__` for current live package
 - **`Current Account Owner`** — set to the current user on create (`["<user-uuid>"]`). The Resync button on the Customer page keeps this in sync afterwards, but on initial create the button hasn't fired, so set it explicitly.
 - `Status` options: `Not started`, `Renewal`, `Preparing`, `Activating`, `Adopting`, `Package Expired`, `Service Quota Used`
@@ -180,13 +179,14 @@ After creating a new Active Package page, immediately apply the template using `
 
 ### Query Active Package for a customer
 ```sql
--- All packages (history + current): use Customer (M:N)
+-- All packages (history + current)
 SELECT * FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
-WHERE "Customer (M:N)" LIKE '%[customer-page-id]%'
+WHERE "Customer" LIKE '%[customer-page-id]%'
 
--- Current live package only: use Active for (1:N)
+-- Current live package only: add Active? flag
 SELECT * FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
-WHERE "Active for (1:N)" LIKE '%[customer-page-id]%'
+WHERE "Customer" LIKE '%[customer-page-id]%'
+  AND "Active?" = '__YES__'
 ```
 
 ### Query all sessions for a customer
@@ -276,7 +276,6 @@ Fetch the page immediately before writing — `update_content` is whitespace-exa
 | `SFDC` | url | Salesforce account URL |
 | `Slack Channel` | url | Customer Slack channel URL |
 | `Domain` | url | Customer domain |
-| `Active Package` | relation (limit 1) | → Active Packages DB. Backlink of `Active for (1:N)` on the AP side — shows which AP is currently live for this customer. |
 | `Main Contact` | relation (limit 1) | → Contacts DB |
 | `Contacts` | relation | → Contacts DB |
 | `Calls` | relation | → Sessions DB (back-relation — auto-updated when Sessions.Customers is set) |
@@ -297,7 +296,7 @@ Fetch the page immediately before writing — `update_content` is whitespace-exa
 
 ### Read-only (rollups / formulas — never write these)
 
-`ARR`, `Days Left`, `Days Till Renewal`, `Next Call`, `Next Call (raw)`, `Next Steps`, `Delivered`, `Counted/Real`, `Package Status`, `Start Date (Current Pkg)`, `End Date (Current Pkg)`, `∑ Architecting`, `∑ Credit`, `∑ Time`, `∑ Training`
+`ARR`, `Days Left`, `Days Till Renewal`, `Next Call`, `Next Call (raw)`, `Next Steps`, `Delivered`, `Counted/Real`, `Package Status`, `Start Date (Current Pkg)`, `End Date (Current Pkg)`, `∑ Architecting`, `∑ Credit`, `∑ Time`, `∑ Training`, `All packages` (rollup — all APs ever linked via the `Customer` relation on the AP side), `Current package` (formula — the AP with `Active? = YES`; first found if multiple active)
 
 ---
 
@@ -308,8 +307,7 @@ Fetch the page immediately before writing — `update_content` is whitespace-exa
 | Field | Type | Valid values / notes |
 |---|---|---|
 | `Name` | title | Format: `{Year} – {Customer Name} \| {Master Package}` e.g. `2025 – Acme Corp \| Essential Services` |
-| `Active for (1:N)` | relation | → Customers DB. **Live-ledger link.** Set when `Start Date ≤ today ≤ End Date`; cleared on expiry (`Active? = NO` / `Status = Package Expired`). One AP can serve multiple customers simultaneously (e.g. shared-contract accounts like SAP Signavio). |
-| `Customer (M:N)` | relation | → Customers DB. **Permanent historical link.** Always set on create; never cleared regardless of status. Used for "all packages ever associated with this customer" queries. |
+| `Customer` | relation | → Customers DB. **Sole customer relation — permanent link.** Set on create; never cleared regardless of status. Multi-value: one AP can serve multiple customers simultaneously (e.g. shared-contract accounts). Used for all customer lookups — both history and current. |
 | `Master Package` | relation (limit 1) | → Master Packages DB |
 | `ARR` | number | Dollar value — ACV/annual (never divide by contract length) |
 | `Active?` | checkbox | `__YES__` for the current live package |
@@ -398,8 +396,8 @@ Workspace admins always retain full access regardless of property-rule restricti
 
 - **Formulas referencing other formulas can't be updated via MCP.** Any `ALTER COLUMN "X" SET FORMULA(...)` on Active Packages fields that read from another formula (Total Credit, Consumed Credit, Delivered, Balance Credit) returns a type error. Edit in the Notion UI.
 - **Relations write on create** (verified Apr 2026). No need to create-then-link.
-- **`Active Package` on Customer** is limit 1. Old packages stay but `Active?` = NO.
-- **Active Packages have two Customer relation fields with different semantics.** `Active for (1:N)` = live-ledger link, cleared on expiry; `Customer (M:N)` = permanent historical link, never cleared. When querying APs for a customer, use `"Customer (M:N)"` for history lookups and `"Active for (1:N)"` for finding what's currently live. On create: always set `Customer (M:N)`; set `Active for (1:N)` only when `Start Date ≤ today ≤ End Date`. On expiry: clear `Active for (1:N)`, leave `Customer (M:N)` intact.
+- **Only one Active Package per customer should have `Active? = YES`.** If multiple are flagged, the Customer's `Current package` formula returns only the first — the rest are invisible to the formula but still burn credit. Use `/notion-check` to surface and resolve duplicates.
+- **Active Package has one Customer relation field: `Customer`.** Always set on create; never cleared regardless of status. Use `"Customer" LIKE '%<customer-id>%'` for all AP queries; add `AND "Active?" = '__YES__'` to narrow to the current live package. The Customer's `Current package` formula (Formulas 2.0) shows the same view — if multiple packages have `Active? = YES` for the same customer (data hygiene issue), the formula silently returns only the first. Use `/notion-check` to surface duplicates.
 - **Kickoffs**: `Do not count` = `__YES__`, `Type` = `👟 Kick off`.
 - **`Session Length (h)`** is a number field (hours). Always set even for session-counted packages.
 - **Rollup and formula fields are read-only** — see the Customers / Active Packages / Sessions / Tasks Field Reference sections above for the complete lists. Never try to write ARR, Days Left, Delivered, Package Status, Start Date (Current Pkg), End Date (Current Pkg), ∑ Architecting, ∑ Credit, ∑ Time, ∑ Training, Left Days, Left Architecting, Left Training, `Delivered By (Sessions)`, or any formula/rollup.
@@ -422,7 +420,8 @@ Workspace admins always retain full access regardless of property-rule restricti
 Customer
   ├── Owner (Person) ──► source of truth for ownership
   ├── Resync Owner to descendants (Button) ──► propagates Owner → Current Account Owner on Sessions, Tasks, Active Package
-  ├── Active Package (limit 1) ──► ARR, Days Left, burn formulas roll up
+  ├── All packages [rollup] ──► all Active Packages ever associated (backlink of Customer relation on AP side)
+  ├── Current package [formula] ──► Active Package where Active? = YES (first found if multiple)
   ├── Packages ──► Master Packages (template/SKU)
   ├── Calls ──► Sessions (auto via Session → Customers relation)
   ├── Tasks ──► Tasks
@@ -436,8 +435,7 @@ Session
   └── Consumed Package ──► Active Package (burns credit)
 
 Active Package
-  ├── Active for (1:N) ──► Customers currently served (set when live; cleared on expiry)
-  ├── Customer (M:N) ──► permanent historical link to all associated Customers
+  ├── Customer ──► Customer(s) on this contract (permanent, multi-value for shared contracts)
   ├── Current Account Owner (Person) ──► mirror of Customer.Owner
   ├── Delivered By (Sessions) [rollup] ──► unique presenters across linked Sessions
   ├── Master Package (limit 1) ──► pulls Unit, allocations

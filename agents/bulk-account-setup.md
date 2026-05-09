@@ -55,7 +55,7 @@ For each customer, run these two lookups simultaneously:
 ```sql
 -- ID: see context/notion-schema.md — keep in sync
 SELECT * FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
-WHERE "Customer (M:N)" LIKE '%<customer-page-id>%'
+WHERE "Customer" LIKE '%<customer-page-id>%'
 ```
 
 Classify:

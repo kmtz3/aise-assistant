@@ -57,7 +57,7 @@ Check whether an Active Package already exists for this customer:
 ```sql
 -- ID: see context/notion-schema.md — keep in sync
 SELECT * FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
-WHERE "Customer (M:N)" LIKE '%[customer-page-id]%'
+WHERE "Customer" LIKE '%[customer-page-id]%'
 ```
 If one exists and `Active? = __YES__`, flag it — don't create a second one without the user's explicit say-so.
 
@@ -155,8 +155,7 @@ Also set these **page properties** from Salesforce data (not page body):
 | Field | Value |
 |---|---|
 | Name | `{Year} – {Customer Name} | {Master Package}` (en-dash with spaces, pipe with spaces; year = contract start year). Example: `2025 – Acme Corp | Essential Services`. |
-| `Customer (M:N)` | [relation to Customer page — always set; permanent historical link, never cleared] |
-| `Active for (1:N)` | [relation to Customer page — set only if `Start Date ≤ today ≤ End Date`; leave empty for future-dated contracts] |
+| `Customer` | [relation to Customer page — always set; sole customer relation, never cleared] |
 | Master Package | [relation — confirmed from step 3] |
 | Status | `Activating` (if engagement underway), `Preparing` (if just starting), or `Not started` |
 | Active? | `__YES__` |

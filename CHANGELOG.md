@@ -5,6 +5,15 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [2.4.0] — 2026-05-09
+
+### Changed
+- `notion-schema.md`, `notion-writer.md`, `notion-writer-playbook.md`, `account-setup.md`, `bulk-account-setup.md`, `customer-plan-next.md`, `engagement-planner.md`, `sf-backfill.md`: replaced the two-field customer pattern (`Active for (1:N)` + `Customer (M:N)`) on Active Package with a single `Customer` relation (Formulas 2.0 schema); on-expiry no longer requires clearing a relation — just flip `Active? = __NO__`; all queries updated to `"Customer" LIKE '%<id>%' AND "Active?" = '__YES__'` for current-package lookups
+- `notion-schema.md`: removed `Active Package` (limit 1 backlink) from Customer writable fields; added `All packages` (rollup) and `Current package` (formula) to Customer read-only fields; updated Relationship Map and known gotchas accordingly
+- `notion-integrity-check.md`: removed stale `Active for (1:N)` drift check (field is gone); updated Multiple-Active-Packages check to use `Customer` + `Active? = YES` query; added new 🟦 Field hygiene checks — Sessions and Tasks with null or date-mismatched `Consumed Package`; added `--fix` logic to auto-assign `Consumed Package` using the date-matching rule where exactly one AP covers the record date
+
+---
+
 ## [2.3.1] — 2026-05-09
 
 ### Fixed

@@ -44,7 +44,8 @@ WHERE Owner LIKE '%<user-uuid>%'
 **B. Active Packages — owned by the user (via current ownership) plus null candidates:**
 ```sql
 -- IDs: see context/notion-schema.md — keep in sync
-SELECT url, Name, "Customer (M:N)", "Active for (1:N)", "Active?", Status, "Current Account Owner"
+SELECT url, Name, "Customer", "Active?", Status, "Current Account Owner",
+       "date:Start Date:start", "date:End Date:start"
 FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
 WHERE "Current Account Owner" LIKE '%<user-uuid>%'
 ```
@@ -55,7 +56,7 @@ Then for each Active Package's linked Customer, fetch Customer.Owner. Only flag 
 ```sql
 -- IDs: see context/notion-schema.md — keep in sync
 SELECT url, Name, Customers, "Call Status", "date:Call Date:start",
-       "Current Account Owner", "Delivered By"
+       "Current Account Owner", "Delivered By", "Consumed Package", "Do not count"
 FROM "collection://29397e9c-7d4f-8052-886b-000b9e3479d7"
 WHERE "Current Account Owner" LIKE '%<user-uuid>%'
    OR "Delivered By" LIKE '%<user-uuid>%'
@@ -64,7 +65,7 @@ WHERE "Current Account Owner" LIKE '%<user-uuid>%'
 **D. Tasks touched by the user (created by her or on her accounts):**
 ```sql
 -- IDs: see context/notion-schema.md — keep in sync
-SELECT url, Task, Customers, Status, Owner, "Current Account Owner"
+SELECT url, Task, Customers, Status, Owner, "Current Account Owner", "Consumed Package", "Do not count"
 FROM "collection://29397e9c-7d4f-808f-bcd4-000b66a94678"
 WHERE Owner LIKE '%<user-uuid>%'
    OR "Current Account Owner" LIKE '%<user-uuid>%'
@@ -78,9 +79,8 @@ Process the working set and bucket findings into these categories:
 
 **🟥 Critical drift (require human judgment, never auto-fix):**
 
-- **Orphan Active Package** — `Active? = __YES__` but `Customer (M:N)` relation is null. (We've seen this once before.)
-- **Multiple Active Packages flagged Active for one customer** — should be exactly one. Indicates a missed deactivation. Check via: `Active for (1:N)` contains the customer + `Active? = YES` count > 1.
-- **`Active for (1:N)` drift** — package is `Active? = YES` with `Start Date ≤ today ≤ End Date` but `Active for (1:N)` is null (live-ledger link not set). Conversely: package is `Active? = NO` or `Status = Package Expired` but `Active for (1:N)` is still populated (not cleared on expiry). Both are fixable with `--fix`.
+- **Orphan Active Package** — `Active? = __YES__` but `Customer` relation is null. (We've seen this once before.)
+- **Multiple Active Packages with `Active? = YES` for one customer** — should be exactly one. Check via: `"Customer"` LIKE customer-page-id AND `"Active?" = '__YES__'`, count > 1. The Customer's `Current package` formula silently shows only the first — the others burn credit invisibly. Requires human judgment to decide which is the true current package.
 - **Customer.Owner ≠ Active Package.Current Account Owner** for the linked AP — propagation drift, but if the package shows a different AISE than the customer, it might be a handoff in flight. Surface for human review.
 - **Customer the user owns has no Active Package at all** — usually indicates the Customer page exists but the engagement record was never created.
 
@@ -105,6 +105,8 @@ Specific cases to flag:
 - **Task with null `Customers` relation** — every Task must have one. Internal tasks → Productboard customer record (`https://app.notion.com/29997e9c7d4f80e6a011f053bdec1ab5`). Surface the task title for the user to decide which customer it belongs to.
 - **Session with `Call Status = Delivered` but `Delivered By` is null** — every delivered session needs a presenter. Default candidate: the user, if the customer is hers; surface for confirmation otherwise.
 - **Session with `Call Status = Planned` but `Call Date` in the past** — either the call was held but not flipped to Delivered, or it was missed/rescheduled.
+- **Session with missing or mismatched `Consumed Package`** — for each Session where `Call Status = Delivered` and `Do not count ≠ __YES__`: (1) if `Consumed Package` is null → flag as missing; (2) if set, fetch the linked AP's `Start Date` and `End Date` and verify the session's `Call Date` falls within range → flag as mismatch if it doesn't. Fetch each unique `Consumed Package` once and cache dates to avoid redundant fetches. Fixable with `--fix` using the date-matching rule from `context/notion-schema.md` § Create a Session.
+- **Task with missing or mismatched `Consumed Package`** — for each Task where `Status ≠ Done` and `Status ≠ Canceled` and `Do not count ≠ __YES__` and `Customers` is not the internal Productboard record: (1) if `Consumed Package` is null → flag as missing; (2) if set, verify the linked AP's `Customer` relation includes the task's `Customers` value (wrong-package assignment). Fixable with `--fix` using the date-matching rule from `context/notion-schema.md` § Create a Task.
 
 ### Step 4 – Report
 
@@ -123,6 +125,7 @@ Group by category. Format:
 
 🟦 Field hygiene – [n] findings
 - [Task title]: Customers relation is null → [link]
+- [Session / Task title]: Consumed Package null or date-mismatch → [link]
 …
 
 Summary: [n] total findings. [n] auto-fixable with `--fix`.
@@ -132,15 +135,13 @@ Summary: [n] total findings. [n] auto-fixable with `--fix`.
 
 For each 🟨 propagation drift item: write `Current Account Owner = the user's Notion ID (per `about/identity.md`)` on the affected record.
 
-For each `Active for (1:N)` drift item:
-- **Missing `Active for (1:N)` on a live package** (`Active? = YES`, dates cover today, field null): set `Active for (1:N)` to the same Customer URL(s) in `Customer (M:N)`. Flag in report: "Set `Active for (1:N)` on [AP name] — was missing."
-- **Stale `Active for (1:N)` on an expired package** (`Active? = NO` or `Status = Package Expired`, field still populated): clear `Active for (1:N)`. Flag in report: "Cleared `Active for (1:N)` on [AP name] — package is expired."
-
 For each 🟦 field hygiene item:
 - Active Package name mismatch: if `Start Date`, linked Customer name, and linked Master Package name are all resolvable, auto-fix by writing the corrected `Name` in the format `{Year} – {Customer Name} | {Master Package}`. If any relation is null, surface and skip.
 - Task with null `Customers`: do NOT auto-fix. Surface for the user's decision (which customer to link).
 - Session with null `Delivered By` on an account the user owns: set to the user's Notion ID (per `about/identity.md`), but flag in the report that this is an assumption.
 - Session Planned but past-dated: do NOT auto-fix. Surface for the user's decision (mark Delivered, reschedule, or cancel).
+- Session with null `Consumed Package` (Delivered, not Do-not-count): find the AP for that customer whose `Start Date` ≤ session `Call Date` ≤ `End Date`. If exactly one match exists, auto-fix by setting `Consumed Package` to that AP. If zero or multiple matches, surface for user decision.
+- Task with null `Consumed Package` (open, not Do-not-count, not internal): apply the date-matching rule from `context/notion-schema.md` § Create a Task. (1) if task has `Source Call`, inherit that session's `Consumed Package`. (2) Otherwise find the customer's AP covering the task's `Due Date` or today. If found, auto-fix. If not, surface for user decision.
 
 🟥 critical drift is **never** auto-fixed.
 

@@ -36,7 +36,7 @@ For every operation:
 2. **Resolve relations** — search Notion for existing records:
    - Customer by name (check `notion-schema.md` for exact casing/shorthand)
    - Contacts by name, then email
-   - Active Package = query APs DB where `"Customer (M:N)"` LIKE customer-page-id AND `Active? = YES`
+   - Active Package = query APs DB where `"Customer"` LIKE customer-page-id AND `Active? = YES`
 3. **Draft the record(s)** in chat using the per-operation template below.
 4. **Confirm with the user** — explicit go-ahead before writing.
 5. **Write via Notion MCP** — use the exact data source ID from the schema file.
@@ -231,7 +231,7 @@ Overwrite?
 **Standard sequence:**
 
 1. Confirm which Master Package template applies (named pattern like `Essential Services — 40 hrs` or `Enterprise — 12 months`).
-2. Create Active Package with: `Name`, `Customer (M:N)` relation (permanent — always set), `Active for (1:N)` relation (set only if `Start Date ≤ today ≤ End Date`; leave empty for future-dated contracts), `Master Package` relation, `Start Date`, `End Date`, `ARR`, `Active?: true`, `Current Account Owner: <user-uuid>`, `Status: Preparing` (or `Not started` / `Activating` / `Adopting` as appropriate).
+2. Create Active Package with: `Name`, `Customer` relation (sole customer link — always set), `Master Package` relation, `Start Date`, `End Date`, `ARR`, `Active?: true`, `Current Account Owner: <user-uuid>`, `Status: Preparing` (or `Not started` / `Activating` / `Adopting` as appropriate).
 2b. Apply the Active Package template immediately after create: `notion-update-page`, `command: apply_template`, `template_id: 29697e9c7d4f806fb251df6f1d20bf88`. This places the `🗺️ Program Plan`, `🧠 Working Notes`, and `📋 Account History` structural toggles on the new page (see `context/notion-schema.md` § Active Package Template).
 3. Flip any previous Active Package for that customer to `Active?: false` and `Status: Service Quota Used` (credits exhausted but contract live) or `Package Expired` (contract end date passed — true terminal state).
 

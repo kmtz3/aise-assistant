@@ -23,7 +23,7 @@ Customer (name or shorthand). Optionally: target go-live date, sponsor name, pil
 Before anything else, pin down:
 
 - **Customer page** — Customers DB (see `context/notion-schema.md`), lookup by name.
-- **Active Package page** — Active Packages DB (see `context/notion-schema.md`) filtered by `"Customer (M:N)"` LIKE customer-page-id AND `Active? = __YES__`. Limit 1 per customer. **This page's URL is where the plan lands.**
+- **Active Package page** — Active Packages DB (see `context/notion-schema.md`) filtered by `"Customer"` LIKE customer-page-id AND `Active? = __YES__`. Limit 1 per customer. **This page's URL is where the plan lands.**
 - **Master Package** on the Active Package — gives the contracted Architecting / Training allocation. That's your A-session and E-session budget.
 - **Contacts** — pull the customer-side stakeholder list.
 - **Existing Sessions** — Sessions DB filtered by this Customer. Anything already `Planned` or `Delivered` constrains the plan; don't duplicate.
