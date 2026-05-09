@@ -5,6 +5,13 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [4.1.0] — 2026-05-09
+
+### Changed
+- `skills/assistant-help/SKILL.md`: added `/report` to the Common workflows table, Command families taxonomy, and a new Flag reference section (`--customer` and `--aise` modes with flag tables and examples)
+
+---
+
 ## [4.0.0] — 2026-05-09
 
 ### Added

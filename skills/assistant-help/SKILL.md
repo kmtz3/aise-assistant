@@ -31,6 +31,8 @@ Commands are grouped by family. Type `/<family>` (or `/<family>-`) in autocomple
 | **Repair ownership drift in Notion** | `/notion-sync --owner [--global]` |
 | **Flag renewals coming up** | `/notion-sync --renewals [--days N] [--dry-run]` |
 | **Build a customer-facing diagram** | `/draft-diagram <customer> <type> [description]` |
+| **Leadership report on one account** | `/report --customer <customer>` — program health, credits, sessions, signals, next step |
+| **Leadership portfolio view for an AISE** | `/report --aise [me \| <name>]` — attention queue, per-account table, velocity, renewals |
 
 ## Suggested order around a customer session
 
@@ -50,6 +52,7 @@ Commands are grouped by family. Type `/<family>` (or `/<family>-`) in autocomple
 - **`notion-*`** — direct Notion operations (`-write`, `-check`, `-ask`)
 - **`notion-sync`** — push external data into Notion (`--sf`, `--owner`, `--renewals`)
 - **`assistant-*`** — meta / configure the assistant (`-setup`, `-help`, `-remember`, `-automate`)
+- **`report`** — leadership reporting (`--customer` for one account, `--aise` for a full portfolio)
 - **Standalone** — `/support-hub`, `/daily-brief`
 
 ## Flag reference — multi-mode commands
@@ -102,6 +105,24 @@ Commands are grouped by family. Type `/<family>` (or `/<family>-`) in autocomple
 ```
 /customer-plan --next Acme                 # tactical next-phase plan
 /customer-plan --full Acme                 # full engagement program plan
+```
+
+### `/report` — two modes, one command
+
+| Mode | What it does |
+|---|---|
+| `--customer <name>` | Account snapshot: ARR, contract, program phase, session history, credit trajectory, open tasks, Gong/Gmail signals, next step |
+| `--aise [me \| <name>]` | Portfolio view for any AISE: attention queue (gaps, low credits, renewals), per-account table, velocity stats, renewals calendar |
+
+**Examples:**
+```
+/report --customer Acme                    # leadership snapshot for one account
+/report --customer Acme --since 2026-04-01 # limit "recent activity" to a specific window
+/report --aise                             # your own portfolio
+/report --aise me                          # same as above
+/report --aise "Alex Doe"                  # another AISE's portfolio (management view)
+/report --aise "Alex" --days 45            # change the "no recent session" gap threshold
+/report --aise me --renewals-window 60     # tighter renewals look-ahead
 ```
 
 ### `/notion-check` flags
