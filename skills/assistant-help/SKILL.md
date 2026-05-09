@@ -25,6 +25,7 @@ Commands are grouped by family. Type `/<family>` (or `/<family>-`) in autocomple
 | **Set up a brand-new or inherited account** | `/customer-setup <customer>` |
 | **Score a delivered session against the rubric** | `/session-score <session-type>` |
 | **Check Notion for data drift** | `/notion-check [--customer <name>] [--fix]` |
+| **Ask how the Tracker databases work** | `/notion-ask <question>` — what to fill, what's auto-calculated, how DBs connect |
 | **Answer a customer question with PB docs** | `/support-hub <query>` |
 | **Sync Salesforce → Active Packages** | `/notion-sync --sf [--customer <name>] [--apply]` |
 | **Repair ownership drift in Notion** | `/notion-sync --owner [--global]` |
@@ -46,7 +47,7 @@ Commands are grouped by family. Type `/<family>` (or `/<family>-`) in autocomple
 - **`bulk`** — run a session workflow across multiple meetings at once (`--debrief`, `--prep`)
 - **`bulk-account-setup`** — admin/reorg task: set up all accounts owned by a user
 - **`draft-*`** — message / artifact drafts (`-email`, `-followup`, `-diagram`)
-- **`notion-*`** — direct Notion operations (`-write`, `-check`)
+- **`notion-*`** — direct Notion operations (`-write`, `-check`, `-ask`)
 - **`notion-sync`** — push external data into Notion (`--sf`, `--owner`, `--renewals`)
 - **`assistant-*`** — meta / configure the assistant (`-setup`, `-help`, `-remember`, `-automate`)
 - **Standalone** — `/support-hub`, `/daily-brief`
@@ -118,12 +119,13 @@ Commands are grouped by family. Type `/<family>` (or `/<family>-`) in autocomple
 | `--research` | Baseline + deep company research (web, SF, Gong) |
 | `--refresh` | Re-runs research on an existing Customer page |
 
-## Notion writes
+## Notion
 
 | Want to... | Run |
 |---|---|
 | **Create or update a Notion record** | `/notion-write <create\|update> ...` |
 | **Generate a customer-facing KDD doc** for an architecting session (standalone) | `/session-kdds <customer> [session-id]` |
+| **Ask how the databases work** (fill guide, formulas, interconnections, troubleshooting) | `/notion-ask <question>` |
 
 ## Maintenance
 

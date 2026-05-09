@@ -124,6 +124,7 @@ Grouped by family. Type `/<family>-` in autocomplete to see siblings.
 | `/notion-sync --sf [--customer <name>] [--owner <name>] [--apply]` | Sync Salesforce ARR and contract end dates into Active Packages — fills null ARRs, corrects stale end dates, handles renewal rollovers (deactivate old + create new), flags churned/at-risk accounts for review. |
 | `/notion-sync --owner [--mine\|--global] [--no-confirm]` | Push `Customer.Owner` → `Current Account Owner` on all linked Sessions, Tasks, and Active Packages. `--mine` (default) scopes to your accounts; `--global` runs across the whole workspace (asks for confirmation). |
 | `/notion-sync --renewals [--mine\|--global] [--days N] [--dry-run] [--no-confirm]` | Set `Status = Renewal` on active packages ending within N days (default 90) that aren't already flagged. `--dry-run` previews without writing. |
+| `/notion-ask <question>` | Answer questions about how the 6 databases work, how they interconnect, what fields to fill, and what's auto-calculated. Optionally does a live Notion check when a specific customer is named or troubleshooting is needed. |
 
 ### `assistant-*` — meta / configure the assistant itself
 
@@ -172,6 +173,7 @@ Full spec per skill in [`skills/`](skills/).
 | `assistant-onboarding` | Executes `/assistant-setup`. Auto-resolves the user's Notion identity, asks short HITL questions about voice + workspace preferences, optionally scrapes recent Gmail and Slack to draft a voice profile (distinguishing internal vs client-facing tone), and writes `about/identity.md`, `about/voice.md`, `about/workspace.md`. Run on first install or when handing off to a teammate. |
 | `bulk-prep-week` | Executes `/bulk --prep`. Scans Google Calendar for external customer sessions in the upcoming week, maps them to Notion Customer records, deduplicates against existing Session pages (skips already-prepped, updates page-exists-no-prep, creates otherwise), and runs the full session-prepper flow sequentially for each session that needs prep. |
 | `bulk-account-setup` | Executes `/bulk-account-setup`. Admin/reorg task: queries all customers owned by the target user (self or a named teammate), checks setup state (no Active Package / stub / already set up), presents a queue with one confirmation gate, then runs the full `account-setup` procedure sequentially for each account that needs it. In delegated mode (targeting a teammate), writes ownership fields using the target user's UUID, not the operator's. |
+| `notion-ask` | Executes `/notion-ask`. Reads `context/notion-schema.md` as the canonical source to answer questions about DB structure, field fill requirements, auto-calculated fields, and interconnections. Does live Notion queries only when a specific customer is named or the question requires real-value verification. |
 | `daily-brief` | Pulls today's schedule and open tasks, flags tomorrow's unprepped sessions, creates calendar prep blocks, and renders a styled HTML daily briefing page saved to `~/Desktop/`. |
 
 Full spec per agent in [`agents/`](agents/).
