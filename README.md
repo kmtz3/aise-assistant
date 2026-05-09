@@ -4,11 +4,14 @@ A Cowork / Claude Code plugin that turns any Productboard **AI Success Engineer 
 
 ## What's in the box
 
-- **25 slash commands** grouped by family. Type `/<family>-` in autocomplete to see siblings.
-  - **`customer-*`** (5) — `/customer-setup`, `/bulk-account-setup`, `/customer-whats-new`, `/customer-plan-next`, `/customer-plan-engagement`
-  - **`session-*`** (7) — `/session-prep`, `/session-kdds`, `/session-summary`, `/session-score`, `/session-debrief`, `/bulk-debrief-yesterday`, `/bulk-prep-week`
+- **22 slash commands** grouped by family. Type `/<family>` (or `/<family>-`) in autocomplete to see siblings.
+  - **`customer-*`** (3) — `/customer-setup [--research|--refresh]`, `/bulk-account-setup`, `/customer-whats-new`
+  - **`customer-plan`** (1, two modes) — `/customer-plan --next`, `/customer-plan --full`
+  - **`session-*`** (5) — `/session-prep`, `/session-kdds`, `/session-summary`, `/session-score`, `/session-debrief`
+  - **`bulk`** (1, two modes) — `/bulk --debrief`, `/bulk --prep`
   - **`draft-*`** (3) — `/draft-email`, `/draft-followup`, `/draft-diagram`
-  - **`notion-*`** (3) — `/notion-write`, `/notion-check`, `/notion-sync-sf`
+  - **`notion-*`** (2) — `/notion-write`, `/notion-check`
+  - **`notion-sync`** (1, three modes) — `/notion-sync --sf`, `/notion-sync --owner`, `/notion-sync --renewals`
   - **`assistant-*`** (5) — `/assistant-setup`, `/assistant-help`, `/assistant-remember`, `/assistant-automate`, `/aise-context`
   - **Standalone** (2) — `/support-hub`, `/daily-brief`
 - **20 specialist agents** that execute each command (session prep, KDD generation, summaries, Notion writes, integrity checks, etc.).
@@ -52,9 +55,9 @@ Re-run with `--update` to drift-check, `--reset` to start over, or `--scrape-voi
 
 | Stage | Commands |
 |---|---|
-| **New customer / handoff** | `/customer-setup` → `/customer-plan-engagement` |
+| **New customer / handoff** | `/customer-setup` → `/customer-plan --full` |
 | **Per session** | `/customer-whats-new` → `/session-prep` (or `/session-kdds` for architecting) → deliver → `/session-debrief` |
-| **Ongoing** | `/customer-plan-next`, `/session-score`, `/notion-write`, `/notion-check`, `/notion-sync-sf` |
+| **Ongoing** | `/customer-plan --next`, `/session-score`, `/notion-write`, `/notion-check`, `/notion-sync --sf` |
 | **Anytime** | `/draft-email`, `/draft-followup`, `/draft-diagram`, `/support-hub`, `/assistant-remember`, `/assistant-automate`, `/assistant-help` |
 
 ## Connecting your tools

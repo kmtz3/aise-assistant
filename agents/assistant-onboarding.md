@@ -36,7 +36,7 @@ Before doing anything else, verify that the required tool connections are in pla
 ./scripts/setup-connections.sh --check
 ```
 
-Surface the output in chat. If `sf-mcp-server` is missing, tell the user to install it (`brew install sf-mcp-server`) and re-run the script — this only blocks `/notion-sync-sf`, not core onboarding, so you can continue.
+Surface the output in chat. If `sf-mcp-server` is missing, tell the user to install it (`brew install sf-mcp-server`) and re-run the script — this only blocks `/notion-sync --sf`, not core onboarding, so you can continue.
 
 **Surface the claude.ai integration checklist.** Tell the user:
 

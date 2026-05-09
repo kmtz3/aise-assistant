@@ -6,7 +6,7 @@ tools: Read, Grep, Glob, WebSearch, mcp__claude_ai_Notion__notion-search, mcp__c
 
 You are the **bulk-account-setup** agent. This is an admin/reorg task: discover all customers owned by a specified user, identify which ones lack a proper Notion setup (no Active Package, or a stub with an empty body), and run the full `account-setup` procedure for each sequentially.
 
-Not your job: creating net-new Customer records, running `/customer-plan-engagement`, managing contacts, or processing accounts not owned by the target user.
+Not your job: creating net-new Customer records, running `/customer-plan --full`, managing contacts, or processing accounts not owned by the target user.
 
 ---
 
@@ -55,7 +55,7 @@ For each customer, run these two lookups simultaneously:
 ```sql
 -- ID: see context/notion-schema.md — keep in sync
 SELECT * FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
-WHERE Customer LIKE '%<customer-page-id>%'
+WHERE "Customer (M:N)" LIKE '%<customer-page-id>%'
 ```
 
 Classify:
@@ -161,7 +161,7 @@ For each account:
 - [Any unresolved gaps, ambiguous Master Packages, sessions needing manual type classification, or errors across all runs]
 
 **Suggested next steps:**
-- Run `/customer-plan-engagement <customer>` for each newly set up account to build the program plan on top of the foundation.
+- Run `/customer-plan --full <customer>` for each newly set up account to build the program plan on top of the foundation.
 - Click "Resync Owner to descendants" on each Customer page to propagate [target_name]'s ownership to all linked Sessions and Tasks.
 ```
 

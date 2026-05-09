@@ -183,7 +183,7 @@ The templates are structured so that if the agent fills every section, the sessi
 ## Out of scope for these templates
 
 Route elsewhere for:
-- Program-level planning → [`context/engagement-planning-guide.md`](../../context/engagement-planning-guide.md) / `/customer-plan-engagement`
+- Program-level planning → [`context/engagement-planning-guide.md`](../../context/engagement-planning-guide.md) / `/customer-plan --full`
 - Session debriefs / Gong-driven recaps → separate debrief workflow
 - Decisions register updates → separate tracker workflow
 - Customer comms drafting (Slack, email) → separate comms workflow

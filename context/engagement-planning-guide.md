@@ -1,6 +1,6 @@
 # Engagement Program Planning Guide
 
-How to draft a structured, phased onboarding program for a new Productboard AISE engagement. This is the reference for `/customer-plan-engagement`.
+How to draft a structured, phased onboarding program for a new Productboard AISE engagement. This is the reference for `/customer-plan --full`.
 
 Reference case: **Kpler Holding SA** (Q1 2026) — program plan and session log live in Notion / Glean.
 
@@ -10,7 +10,7 @@ Reference case: **Kpler Holding SA** (Q1 2026) — program plan and session log 
 
 Use this when a new customer is assigned, or when an existing program needs a full restructure. The output is a decision-ready markdown artefact that lands in the customer's **Active Package page body in Notion**, under a collapsible toggle heading `🗺️ Program Plan — YYYY-MM-DD`. the user can then work against it for the rest of the engagement.
 
-This is for **program-level planning** only. Individual session prep, debriefs, and facilitator guides are separate workflows (`/session-prep`, `/session-summary`, `/customer-plan-next`).
+This is for **program-level planning** only. Individual session prep, debriefs, and facilitator guides are separate workflows (`/session-prep`, `/session-summary`, `/customer-plan --next`).
 
 ---
 
@@ -23,7 +23,7 @@ Trigger phrases:
 - "Restructure the plan for [customer]"
 - "Build me a session plan for [customer]"
 
-Do **not** invoke for single-session prep, debriefs, decision register updates, or individual deliverable requests. Route those through `/session-prep`, `/session-summary`, `/customer-plan-next`, or `/notion-write`.
+Do **not** invoke for single-session prep, debriefs, decision register updates, or individual deliverable requests. Route those through `/session-prep`, `/session-summary`, `/customer-plan --next`, or `/notion-write`.
 
 ---
 

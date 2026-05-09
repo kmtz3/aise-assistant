@@ -5,6 +5,20 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [2.3.0] — 2026-05-09
+
+### Changed
+- Consolidated 7 skills into 3 multi-mode commands to reduce surface area as the plugin grows
+- `notion-sync-sf` + `notion-sync-owner` + `notion-flag-renewals` → `/notion-sync --sf|--owner|--renewals` (all push external data into Notion; share `--mine`, `--global`, `--dry-run`, `--no-confirm` flag conventions)
+- `bulk-debrief-yesterday` + `bulk-prep-week` → `/bulk --debrief|--prep` (both run a session workflow in bulk across calendar events)
+- `customer-plan-next` + `customer-plan-engagement` → `/customer-plan --next|--full` (both plan forward; flag is just scope)
+- `skills/assistant-help/SKILL.md`: rewritten with new command names, per-command flag reference tables, and usage examples for all multi-mode commands
+- All agent files, context files, and templates updated: `agents/account-setup.md`, `agents/bulk-account-setup.md`, `agents/engagement-planner.md`, `agents/assistant-onboarding.md`, `context/engagement-planning-guide.md`, `templates/session-kdds/00-index.md`, `skills/customer-setup/SKILL.md`
+- `CLAUDE.md` command registry updated: new `bulk` family section added; `notion-*` table updated; `customer-plan` rows updated; agent table gains `customer-plan-next` row; output defaults updated
+- `README.md` updated: command count 25 → 22, family listings, workflow table
+
+---
+
 ## [2.2.5] — 2026-05-09
 
 ### Changed
