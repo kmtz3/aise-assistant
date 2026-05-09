@@ -12,7 +12,7 @@ A Cowork / Claude Code plugin that turns any Productboard **AI Success Engineer 
   - **`draft-*`** (3) — `/draft-email`, `/draft-followup`, `/draft-diagram`
   - **`notion-*`** (2) — `/notion-write`, `/notion-check`
   - **`notion-sync`** (1, three modes) — `/notion-sync --sf`, `/notion-sync --owner`, `/notion-sync --renewals`
-  - **`assistant-*`** (5) — `/assistant-setup`, `/assistant-help`, `/assistant-remember`, `/assistant-automate`, `/aise-context`
+  - **`assistant-*`** (4) — `/assistant-setup`, `/assistant-help`, `/assistant-remember`, `/aise-context`
   - **Standalone** (2) — `/support-hub`, `/daily-brief`
 - **20 specialist agents** that execute each command (session prep, KDD generation, summaries, Notion writes, integrity checks, etc.).
 - **Universal context** — workflow rules, the AISE reference guide, scorecards, communication style guide, full Notion Customer Tracker schema, engagement planning framework, KDD anchor templates per A-session type.
@@ -25,9 +25,12 @@ A Cowork / Claude Code plugin that turns any Productboard **AI Success Engineer 
 **Plugin install (share with a teammate)** — package first, then load:
 
 ```bash
-npm run pack          # builds aise-assistant-vX.Y.Z.zip in parent dir
-claude --plugin-dir . # or point a teammate at the zip via --plugin-url
+npm run pack   # builds aise-assistant-vX.Y.Z.plugin in parent dir
 ```
+
+Install the `.plugin` file via:
+- **Cowork UI** — Settings → Extensions → upload the `.plugin` file
+- **CLI** — `claude plugin marketplace add <path> --scope user` + `claude plugin install aise-assistant@<name>`
 
 Skills are namespaced: `/aise-assistant:session-prep`, `/aise-assistant:session-debrief`, etc.
 

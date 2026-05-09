@@ -48,7 +48,7 @@ fi
 
 # ---------------------------------------------------------------------------
 # Auto-bump version based on git diff vs HEAD (or --bump override)
-# Rules (from DEVELOPMENT.md):
+# Rules (from .claude/DEVELOPMENT.md):
 #   MAJOR — any skill/command/agent ADDED or DELETED (capability roster changed)
 #   MINOR — functional tweak to existing capabilities → pass --bump minor
 #   PATCH — behavior fix → default when no roster change detected
@@ -147,7 +147,6 @@ rsync -a \
   --exclude='memory/' \
   --exclude='*.plugin' \
   --exclude='package.json' \
-  --exclude='DEVELOPMENT.md' \
   "$PLUGIN_DIR/" "$STAGED/"
 
 # Restore placeholder personal files from templates (so new users get the onboarding prompts)

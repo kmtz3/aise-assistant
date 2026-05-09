@@ -96,7 +96,7 @@ fi
 
 # ── Check 4: Required top-level dirs ─────────────────────────────────────────
 # agents/ is always required. For commands, we ship commands/ (Cowork native
-# validator format); skills/ is excluded from the package (see DEVELOPMENT.md).
+# validator format); skills/ is excluded from the package (see .claude/DEVELOPMENT.md).
 # Accept either so this check stays valid if the format ever switches.
 if [[ -d "$ROOT/agents" ]]; then
   check "agents/ directory present" "ok"

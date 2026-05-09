@@ -5,6 +5,17 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [2.3.1] — 2026-05-09
+
+### Fixed
+- `notion-schema.md`, `notion-writer.md`, `notion-writer-playbook.md`, `notion-integrity-check.md`, `sf-backfill.md`, `customer-plan-next.md`: replaced deprecated `Customer` relation field with `Customer (M:N)` (permanent historical link) and `Active for (1:N)` (live-ledger link, set when `Start Date ≤ today ≤ End Date`, cleared on expiry); documented semantics, query patterns, and on-expiry clear rule throughout
+- `notion-schema.md`: updated Customer Template section — agent now applies template on create and fetches the live page to discover section headings dynamically instead of relying on hardcoded names
+- `CLAUDE.md`, `README.md`: removed local-dev-only references (`/assistant-automate`, `workflow-advisor`, "Proactive automation trigger" section); corrected `assistant-*` family count 5 → 4
+- `README.md`: fixed plugin output filename `.zip` → `.plugin`; updated stale install command to current Cowork UI / CLI paths
+- `scripts/package.sh`, `scripts/validate.sh`: removed stale `DEVELOPMENT.md` exclude (now inside `.claude/` which is already excluded); updated comment references
+
+---
+
 ## [2.3.0] — 2026-05-09
 
 ### Changed

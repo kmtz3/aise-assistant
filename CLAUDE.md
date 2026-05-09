@@ -132,7 +132,6 @@ Grouped by family. Type `/<family>-` in autocomplete to see siblings.
 | `/assistant-setup [--scrape-voice] [--reset]` | Onboard the current user (or re-onboard) to this assistant. Resolves Notion identity automatically, asks short HITL questions for preferences, optionally scrapes Gmail + Slack to draft a voice profile, writes `about/identity.md`, `about/voice.md`, `about/workspace.md`. Run on first install or when handing off to a teammate. |
 | `/assistant-help` | Quick reference of all available commands grouped by workflow stage, plus suggested order around a customer session and pointers to deeper docs. Run anytime you forget what's available. |
 | `/assistant-remember <correction>` | Manually invoke the context-keeper to update context files / memory. |
-| `/assistant-automate <task description>` | *(Dev-only — requires working in the plugin source repo.)* Evaluate a described task for automation — drafts a new agent + command on approval and writes them into the plugin. |
 | `/aise-context` | Load the AISE assistant operating context — role definition, ground rules, command registry, and agent index. Invoke at the start of any session if context seems missing or stale. |
 
 ### Standalone
@@ -165,7 +164,6 @@ Full spec per skill in [`skills/`](skills/).
 | `post-session-debrief` | Executes `/session-debrief`. Superagent that orchestrates the complete post-session workflow: spawns `session-summarizer`, `email-drafter`, `kdd-builder` (A-sessions only), and `notion-writer` in sequence; surfaces scorecard eval and product feedback log in chat only. |
 | `bulk-debrief` | Executes `/bulk --debrief`. Discovers all external customer meetings from the previous calendar day, checks each for prior debrief signals (notes / draft / tasks), and executes the complete `post-session-debrief` procedure for each unprocessed or partially-processed session in sequence. |
 | `notion-writer` | Executes Notion create/update operations following `notion-schema.md`. |
-| `workflow-advisor` | *(Dev-only — lives in `.claude/agents/`, not distributed in the plugin.)* Executes `/assistant-automate`. Evaluates whether a task is worth automating, drafts the agent + command + CLAUDE.md rows as a proposal, waits for approval, then writes the files. |
 | `diagram-builder` | Executes `/draft-diagram`. Uses Figma Plugin API when connected (primary output); falls back to a Python SVG generator, then HTML. Saves artifacts to `~/Desktop/aise-assistant/diagrams/<customer>/`, uploads SVG to Google Drive on the SVG path, and attaches the result to the Notion session page. |
 | `sf-backfill` | Executes `/notion-sync --sf`. Queries all active packages, fetches SF opp data per customer (ACV + contract end date using opp start date logic), applies ARR/date updates, handles rollovers (deactivate old + create new), flags churn/skip cases in chat only. Uses Salesforce MCP directly; falls back to Glean search when SF is unavailable — Glean-sourced values are tagged `⚠️ [Glean]` and always require user confirmation before writing. |
 | `support-hub` | Searches support.productboard.com via WebSearch + WebFetch to ground answers in official PB docs. Callable standalone or as a sub-step by session-prepper, email-drafter, and post-session-debrief. |
@@ -191,12 +189,6 @@ When the user:
 → Read `agents/context-keeper.md` and execute its procedure inline.
 
 Default: **confirm the diff before writing**. The user can override with "just do it" / "don't ask again for this kind of thing".
-
----
-
-## Proactive automation trigger
-
-When the user describes a **new recurring or multi-step task** in conversation that has no existing agent or slash command covering it, and it looks like it would take >5 minutes manually or is error-prone: suggest `/assistant-automate <brief task description>` inline. One sentence, not a lecture. They can ignore it; if they engage, read `.claude/agents/workflow-advisor.md` and execute it inline (dev-only — only available when working in the plugin source repo).
 
 ---
 

@@ -23,7 +23,7 @@ Customer (name or shorthand). Optionally: a horizon ("next month", "through end 
 Pin down three pages before doing anything else:
 
 - **Customer page** — Customers DB (see `context/notion-schema.md`), lookup by name.
-- **Active Package page** — Active Packages DB (see `context/notion-schema.md`), filtered by `Customer` relation and `Active? = __YES__`. Limit 1. From this page extract:
+- **Active Package page** — Active Packages DB (see `context/notion-schema.md`), filtered by `"Customer (M:N)"` LIKE customer-page-id AND `Active? = __YES__`. Limit 1. From this page extract:
   - Master Package name → total contracted A-session and E-session allocation.
   - Sessions already created under `Consumed Package` → remaining headroom.
   - Contract end date → time pressure.

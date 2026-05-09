@@ -44,7 +44,7 @@ WHERE Owner LIKE '%<user-uuid>%'
 **B. Active Packages — owned by the user (via current ownership) plus null candidates:**
 ```sql
 -- IDs: see context/notion-schema.md — keep in sync
-SELECT url, Name, Customer, "Active?", Status, "Current Account Owner"
+SELECT url, Name, "Customer (M:N)", "Active for (1:N)", "Active?", Status, "Current Account Owner"
 FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
 WHERE "Current Account Owner" LIKE '%<user-uuid>%'
 ```
@@ -78,8 +78,9 @@ Process the working set and bucket findings into these categories:
 
 **🟥 Critical drift (require human judgment, never auto-fix):**
 
-- **Orphan Active Package** — `Active? = __YES__` but `Customer` relation is null. (We've seen this once before.)
-- **Multiple Active Packages flagged Active for one customer** — should be exactly one. Indicates a missed deactivation.
+- **Orphan Active Package** — `Active? = __YES__` but `Customer (M:N)` relation is null. (We've seen this once before.)
+- **Multiple Active Packages flagged Active for one customer** — should be exactly one. Indicates a missed deactivation. Check via: `Active for (1:N)` contains the customer + `Active? = YES` count > 1.
+- **`Active for (1:N)` drift** — package is `Active? = YES` with `Start Date ≤ today ≤ End Date` but `Active for (1:N)` is null (live-ledger link not set). Conversely: package is `Active? = NO` or `Status = Package Expired` but `Active for (1:N)` is still populated (not cleared on expiry). Both are fixable with `--fix`.
 - **Customer.Owner ≠ Active Package.Current Account Owner** for the linked AP — propagation drift, but if the package shows a different AISE than the customer, it might be a handoff in flight. Surface for human review.
 - **Customer the user owns has no Active Package at all** — usually indicates the Customer page exists but the engagement record was never created.
 
@@ -130,6 +131,10 @@ Summary: [n] total findings. [n] auto-fixable with `--fix`.
 ### Step 5 – Apply fixes if --fix is passed
 
 For each 🟨 propagation drift item: write `Current Account Owner = the user's Notion ID (per `about/identity.md`)` on the affected record.
+
+For each `Active for (1:N)` drift item:
+- **Missing `Active for (1:N)` on a live package** (`Active? = YES`, dates cover today, field null): set `Active for (1:N)` to the same Customer URL(s) in `Customer (M:N)`. Flag in report: "Set `Active for (1:N)` on [AP name] — was missing."
+- **Stale `Active for (1:N)` on an expired package** (`Active? = NO` or `Status = Package Expired`, field still populated): clear `Active for (1:N)`. Flag in report: "Cleared `Active for (1:N)` on [AP name] — package is expired."
 
 For each 🟦 field hygiene item:
 - Active Package name mismatch: if `Start Date`, linked Customer name, and linked Master Package name are all resolvable, auto-fix by writing the corrected `Name` in the format `{Year} – {Customer Name} | {Master Package}`. If any relation is null, surface and skip.

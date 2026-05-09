@@ -31,7 +31,7 @@ Then query:
 
 ```sql
 -- ID: see context/notion-schema.md — keep in sync
-SELECT url, Name, Customer, "Master Package", ARR,
+SELECT url, Name, "Customer (M:N)", "Master Package", ARR,
        "date:Start Date:start", "date:End Date:start", Status, "Active?", "Current Account Owner"
 FROM "collection://29697e9c-7d4f-8031-9f76-000b7e932b36"
 WHERE "Active?" = '__YES__'
@@ -151,13 +151,15 @@ A single customer may trigger multiple actions (e.g. rollover + ARR fill on the 
 notion-update-page:
   Active? = __NO__
   Status  = Package Expired
+  Active for (1:N) = []   ← clear the live-ledger link; Customer (M:N) stays intact
 ```
 
 **Step B — Create the new Active Package:**
 ```
 notion-create-pages in collection://29697e9c-7d4f-8031-9f76-000b7e932b36:  -- ID: see context/notion-schema.md — keep in sync
   Name:                   "[year new contract starts]"
-  Customer:               "[same Customer page URL as old package]"
+  Customer (M:N):         "[same Customer page URL(s) as old package]"  ← permanent historical link, always set
+  Active for (1:N):       "[same Customer page URL(s)]"                 ← live-ledger link; set because new contract starts today or in the past
   Master Package:         "[same Master Package URL as old package]"
   Active?:                __YES__
   Status:                 Activating  ← correct status for a live engagement starting up; never "In progress" — API rejects that on create
