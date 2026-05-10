@@ -5,6 +5,13 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [4.2.1] — 2026-05-10
+
+### Changed
+- `.claude-plugin/marketplace.json`: renamed marketplace from `aise-tools` to `aise-toolkit`; added `aise-leadership` as a second plugin entry pointing at `kmtz3/aise-leadership`
+
+---
+
 ## [4.2.0] — 2026-05-10
 
 ### Changed
