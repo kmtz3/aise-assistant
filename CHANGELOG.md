@@ -5,6 +5,14 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [4.2.0] — 2026-05-10
+
+### Changed
+- `context/notion-schema.md`: corrected `Account Status` valid values and added inline status definitions (Not started, Presales, Active (no Services), Active (Services), Contracted to Scale, Churned) with behavioral notes for each; corrected stale field values for `Session.Type` (added `🫥 Internal`), `Session.Call Status` (proper groupings), `Task.Status`, `Priority`, `AI Ready`, `Industry` multi-select; added `Renewal Forecast` field; corrected Session statuses list in Create a Session section; added Active Package Status behavioral notes block (Renewal 90-day trigger + $30K ARR threshold fork, Package Expired as sole terminal state, Service Quota Used keep-active rule); added 4 new Known Gotchas — $30K AISE ARR threshold, Active (no Services) always expects an AISE No Services AP, Contracted to Scale ≠ services complete, renewal window is 90 days
+- `agents/account-setup.md`: minor update
+
+---
+
 ## [4.1.0] — 2026-05-09
 
 ### Changed

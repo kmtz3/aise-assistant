@@ -119,7 +119,7 @@ Filter queries with `<field> LIKE '%<bare-uuid>%'` so they match the stored form
 - **`Current Account Owner`** — leave blank on create. The Sessions-side automation fills it from `Customers.Owner` automatically.
 - **`Delivered By`** — set to the actual presenter(s). For the user's own sessions: `["<user-uuid>"]`. For backfilled historical sessions: the predecessor AISE's user ID if resolvable, otherwise leave blank and flag.
 - Types: `🏗️ Architecting`, `🗣️ Sync`, `🎓 Training`, `👟 Kick off`, `🔎 Discovery`, `📦 Other`
-- Statuses: `Planned`, `Delivered`, `Canceled`, `Postponed`, `Follow-up email`, `In progress`
+- Statuses: `Not started`, `Planned`, `Postponed`, `In progress`, `Post-session debrief`, `Delivered`, `Canceled`
 
 ### Session Templates
 
@@ -264,12 +264,13 @@ Fetch the page immediately before writing — `update_content` is whitespace-exa
 | Field | Type | Valid values / notes |
 |---|---|---|
 | `Customer` | title | Account name |
-| `Account Status` | status | `Not started`, `Preparing`, `Active`, `Paused`, `Presales`, `Done`, `No Services`, `Unassigned` |
+| `Account Status` | status | **To-do:** `Not started`, `Presales` · **In progress:** `Active (no Services)`, `Active (Services)` · **Complete:** `Contracted to Scale`, `Churned` |
 | `Health (Manual)` | select | `Figuring it out`, `Healthy`, `Concerning`, `Churning` |
-| `Priority` | select | `P0`, `P1`, `P2`, `P3` |
+| `Priority` | select | `P0`, `P1`, `P2`, `P3`, `P4`, `Insufficient Data` |
 | `Preferred Conferencing` | select | `Zoom`, `MS Teams`, `Google Meet` |
-| `AI Ready` | select | `Ready`, `Preparing`, `Potential`, `Not ready` |
-| `Industry` | multi-select | `Digital Consumer Intelligence`, `Social Media Management`, `Fintech`, `eCommerce`, `Digital Commerce Technology`, `B2B`, `Automotive`, `Healthcare` |
+| `AI Ready` | select | `Sparked`, `Preparing`, `Ignitable`, `Not ready` |
+| `Industry` | multi-select | `Digital Consumer Intelligence`, `Social Media Management`, `Fintech`, `eCommerce`, `Digital Commerce Technology`, `B2B`, `Automotive`, `Healthcare`, `Insurance`, `eSports` |
+| `Renewal Forecast` | select | `Likely to Renew`, `Risk to Renewal`, `Churning – No save`, `Churning – Ignitable` |
 | `Owner` | person (multi) | The PB owner(s) of this account. **Authoritative ownership signal — source of truth.** Editing this field triggers the Resync button workflow that propagates to `Current Account Owner` on linked Active Packages, Sessions, Tasks. Multi-allowed for handoff windows. |
 | `Account Executive` | person (multi) | The AE assigned to this account. |
 | `Renewal Manager` | person (multi) | The renewal manager for this account. |
@@ -283,6 +284,14 @@ Fetch the page immediately before writing — `update_content` is whitespace-exa
 | `Figma File` | relation | → Figma Files DB (`29497e9c-7d4f-80ab-b37f-000bbe6452ba`) |
 | `Packages` | relation | → Master Packages DB |
 | `Files & media` | file | Attachments |
+
+**Account Status — definitions:**
+- `Not started` — assigned, not yet started
+- `Presales` — supporting a pre-sale or trial evaluation
+- `Active (no Services)` — account live, no contracted AISE services. A special **"AISE No Services"** Active Package exists for this account, used purely to track syncs and QBRs as sessions. Do not treat this as "no package" — always create/expect an AISE No Services AP when this status is set.
+- `Active (Services)` — engagement live, sessions being delivered under a contracted package
+- `Contracted to Scale` — customer has contracted **below the AISE ARR threshold ($30K)**; ownership transfers to the Scale team. Remove the AISE owner from `Owner`. This is NOT a "services complete" state — it is a handover state.
+- `Churned` — customer has churned; engagement fully closed
 
 ### Buttons
 
@@ -316,6 +325,11 @@ Fetch the page immediately before writing — `update_content` is whitespace-exa
 | `Current Account Owner` | person (multi) | Mirror of `Customer.Owner`. Maintained by the Resync button on the Customer page. Treat as derived — set explicitly only on initial create or when correcting drift. |
 | `Tasks` | relation | → Tasks DB |
 
+**Active Package Status — behavioral notes:**
+- `Renewal` — set **90 days before the contract end date** to flag an upcoming renewal. On confirmed renewal: if customer ARR remains **≥ $30K (AISE threshold)**, create a new Active Package for the new term and set the prior package `Active? = NO`. If ARR drops **below $30K**, use `Contracted to Scale` on the Customer instead. If the contract end date passes without renewal action, transition to `Package Expired`.
+- `Package Expired` — the only terminal state. Set `Active? = NO`. Use when the contract lapses (not just when sessions are exhausted).
+- `Service Quota Used` — all contracted sessions consumed, but AISE ownership continues. Keep `Active? = YES` if recurring syncs/QBRs are ongoing. Do not flag `Service Quota Used + Active? = YES` as a contradiction.
+
 ### Read-only formulas (never write — edit in Notion UI if needed)
 
 `Total Credit`, `Consumed Credit`, `Balance Credit`, `Delivered`, `Total Architecting`, `Total Training`, `Left Architecting`, `Left Training`, `Left Days`, `∑ Credit`, `∑ Architecting`, `∑ Training`, `∑ Time`
@@ -338,8 +352,8 @@ Fetch the page immediately before writing — `update_content` is whitespace-exa
 | `Name` | title | Session name (typically `<Customer> — <Session ID> <Topic>` or close) |
 | `Customers` | relation (limit 1) | → Customers DB |
 | `Consumed Package` | relation | → Active Packages DB. Drives credit burn. **Date-matching rule:** only assign an Active Package whose `Start Date` ≤ session's `Call Date` ≤ `End Date`. If the current `Active? = YES` package does not cover the session date, look for an older inactive package for the same customer whose date range does. If no package's date range covers the session date, leave this field empty. Never assign by recency alone. |
-| `Type` | select | `🏗️ Architecting`, `🗣️ Sync`, `🎓 Training`, `👟 Kick off`, `🔎 Discovery`, `📦 Other` |
-| `Call Status` | status | `Not started`, `Planned`, `Postponed`, `Follow-up email`, `In progress`, `Canceled`, `Delivered` |
+| `Type` | select | `🏗️ Architecting`, `🗣️ Sync`, `🎓 Training`, `👟 Kick off`, `🔎 Discovery`, `📦 Other`, `🫥 Internal` |
+| `Call Status` | status | **To-do:** `Not started`, `Planned`, `Postponed` · **In progress:** `In progress`, `Post-session debrief` · **Complete:** `Delivered`, `Canceled` |
 | `Call Date` | date | Date triples format |
 | `Session Length (h)` | number | Actual call duration in hours |
 | `Do not count` | checkbox | `__YES__` excludes from credit burn (kickoffs, prep pages, internal sessions) |
@@ -365,7 +379,7 @@ Fetch the page immediately before writing — `update_content` is whitespace-exa
 | `Source Call` | relation | → Sessions DB. The session that surfaced this task. |
 | `Owner` | person (multi) | The **creator** of this task. Defaults to whoever logs it. Used to distinguish "I created this" from "I inherited this account." Renamed from `Assignee` in May 2026 — existing values preserved. |
 | `Current Account Owner` | person (multi) | Mirror of `Customer.Owner`. Auto-propagates via the Resync button on the Customer page. Distinguishes inherited tasks (Owner ≠ Current Account Owner) from your own (Owner = Current Account Owner). |
-| `Status` | status | `Pending`, `Not started`, `In progress`, `Done`, `Canceled` |
+| `Status` | status | **To-do:** `Not started` · **In progress:** `In progress` · **Complete:** `Done`, `Canceled` |
 | `Priority` | select | `1`, `2`, `3` |
 | `Due Date` | date | Date triples format |
 | `Time (h)` | number | Time spent on the task |
@@ -411,6 +425,10 @@ Workspace admins always retain full access regardless of property-rule restricti
 - **Owner-write-on-create.** On create: Customer → set `Owner = <user-uuid>`. Active Package / Task → set `Current Account Owner = <user-uuid>` (and Task `Owner = <user-uuid>` as creator). Session → leave `Current Account Owner` blank (auto-filled by automation), set `Delivered By` to the actual presenter. Missing required fields ⇒ the record is invisible to the user's filtered queries afterwards.
 - **Don't write to `Current Account Owner` on existing records during normal operations.** It's maintained by the Resync button on Customer pages and the Sessions-side automation. Only write to it if you're explicitly correcting drift, on initial create before the propagation has fired, or as part of a `account-setup` handoff sweep.
 - **Stored Person values use a `user://` prefix.** Write `["<bare-uuid>"]`; expect `["user://<bare-uuid>"]` on read. Filter with `LIKE '%<bare-uuid>%'`.
+- **AISE ARR threshold is $30K.** Accounts with ARR ≥ $30K are AISE-owned. Below $30K → `Contracted to Scale` on the Customer record; ownership transfers to Scale team. This threshold governs whether to create a new Active Package on renewal or hand off.
+- **`Active (no Services)` always has a package.** Even though no onboarding services are contracted, an **"AISE No Services"** Active Package should exist for the account. Use it to log ongoing syncs and QBRs as sessions. Never leave this account type without a linked Active Package.
+- **`Contracted to Scale` ≠ services complete.** It means the account has fallen below the AISE threshold and is no longer AISE-owned. Do not confuse with `Service Quota Used` (services done, still AISE-owned).
+- **Renewal window is 90 days.** Set Package Status to `Renewal` 90 days before `End Date`. After `End Date` with no renewal action → `Package Expired`.
 
 ---
 

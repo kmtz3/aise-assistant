@@ -143,6 +143,7 @@ In **`--research`** mode: present the proposed content for each section (see § 
 
 Also set these **page properties** from Salesforce data (not page body):
 - `Account Executive`, `Renewal Manager` — Person fields on the Customer record.
+- **`Industry`** — check whether the property is blank on the Customer page. If blank, propose value(s) drawn from the valid multi-select options: `Digital Consumer Intelligence`, `Social Media Management`, `Fintech`, `eCommerce`, `Digital Commerce Technology`, `B2B`, `Automotive`, `Healthcare`, `Insurance`, `eSports`. Source in order: (1) Salesforce `Industry` field from Step 2 — map the SF value to the closest matching option(s); (2) if SF is null, empty, or too generic (e.g. "Technology", "Software"), infer from web research instead — company website, About page, job postings. Multi-select: pick all that clearly apply. Include the proposed value(s) in the Step 4 proposal for confirmation and write on approval. **Applies in all three modes** (baseline, `--research`, `--refresh`) — this is a page property write, not a body section.
 - **Owner property — handoff protocol:**
   - **`Customer.Owner` is the only ownership field to set on this DB.** Editing it is what triggers the Resync button workflow that propagates to `Current Account Owner` on every linked Active Package, Session, and Task.
   - **New customer:** set `Owner = ["<user-uuid>"]` (the user only).
