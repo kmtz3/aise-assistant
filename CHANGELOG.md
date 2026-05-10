@@ -5,6 +5,13 @@ Format: `## [version] — YYYY-MM-DD` followed by bullet points grouped by type.
 
 ---
 
+## [2.0.0] — 2026-05-10
+
+### Changed
+- Version reset to 2.0.0 — prior versioning had inflated; this establishes a clean baseline
+
+---
+
 ## [4.2.1] — 2026-05-10
 
 ### Changed
