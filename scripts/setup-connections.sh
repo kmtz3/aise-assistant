@@ -50,33 +50,15 @@ echo ""
 echo "2. Local MCP servers (~/.claude/mcp.json)"
 echo ""
 
-# 2a. sf-mcp-server binary
-SF_BIN=""
-for candidate in "/opt/homebrew/bin/sf-mcp-server" "/usr/local/bin/sf-mcp-server"; do
-  if [[ -x "$candidate" ]]; then
-    SF_BIN="$candidate"
-    break
-  fi
-done
-if [[ -z "$SF_BIN" ]] && command -v sf-mcp-server &>/dev/null; then
-  SF_BIN=$(command -v sf-mcp-server)
-fi
-
-if [[ -n "$SF_BIN" ]]; then
-  ok "sf-mcp-server found at $SF_BIN"
+# 2a. Salesforce CLI (sf) — needed for org authentication
+if command -v sf &>/dev/null; then
+  ok "Ah, look at this nerd — Salesforce is already installed at $(command -v sf) 🤓"
 else
-  miss "sf-mcp-server not installed"
-  note "Install it: brew install sf-mcp-server"
-  note "Then re-run this script."
+  miss "Salesforce CLI not installed (needed for org authentication)"
+  note "Install it: npm install -g @salesforce/cli"
+  note "Then authenticate: sf org login web"
+  note "The MCP entry will still be added below — install sf before first use."
   echo ""
-  if [[ "$CHECK_ONLY" == true ]]; then
-    echo "══════════════════════════════════"
-    echo "Check complete — sf-mcp-server missing."
-    exit 0
-  fi
-  echo "══════════════════════════════════"
-  echo "Setup incomplete — install sf-mcp-server first (see above)."
-  exit 1
 fi
 
 # 2b. mcp.json — add salesforce entry if missing
@@ -97,35 +79,10 @@ elif [[ "$CHECK_ONLY" == true ]]; then
   miss "salesforce entry missing from mcp.json"
   note "Run without --check to add it."
 else
-  # Resolve the user email: try $PLUGIN_DATA_DIR/about/identity.md first, then prompt
-  SF_EMAIL=""
-  PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir" 2>/dev/null || true)
-  if [[ -z "$PLUGIN_DATA_DIR" ]]; then
-    PLUGIN_DATA_DIR=$(ls -d "$HOME/.claude/plugins/data/aise-assistant"* 2>/dev/null | head -1)
-    PLUGIN_DATA_DIR="${PLUGIN_DATA_DIR:-$HOME/.claude/plugins/data/aise-assistant}"
-  fi
-  IDENTITY="$PLUGIN_DATA_DIR/about/identity.md"
-  if [[ -f "$IDENTITY" ]]; then
-    SF_EMAIL=$(grep -E '^(Email|email):' "$IDENTITY" 2>/dev/null \
-      | head -1 \
-      | sed 's/.*:[[:space:]]*//' \
-      | tr -d '[:space:]' \
-      || true)
-    # Discard placeholder values
-    [[ "$SF_EMAIL" == *"TBD"* ]] && SF_EMAIL=""
-  fi
-
-  if [[ -z "$SF_EMAIL" ]]; then
-    printf "  Enter your Salesforce / Productboard email: "
-    read -r SF_EMAIL
-  else
-    note "Using email from about/identity.md: $SF_EMAIL"
-  fi
-
-  python3 - "$MCP_JSON" "$SF_BIN" "$SF_EMAIL" <<'PYEOF'
+  python3 - "$MCP_JSON" <<'PYEOF'
 import json, sys, os, pathlib
 
-mcp_path, sf_bin, sf_email = sys.argv[1], sys.argv[2], sys.argv[3]
+mcp_path = sys.argv[1]
 pathlib.Path(mcp_path).parent.mkdir(parents=True, exist_ok=True)
 
 config = {}
@@ -135,8 +92,8 @@ if os.path.exists(mcp_path):
 
 config.setdefault("mcpServers", {})
 config["mcpServers"]["salesforce"] = {
-    "command": sf_bin,
-    "args": ["-o", sf_email, "--toolsets", "all"]
+    "command": "npx",
+    "args": ["-y", "@salesforce/mcp"]
 }
 
 with open(mcp_path, "w") as f:
@@ -144,7 +101,7 @@ with open(mcp_path, "w") as f:
     f.write("\n")
 PYEOF
 
-  ok "salesforce entry added to mcp.json ($SF_EMAIL)"
+  ok "salesforce entry added to mcp.json"
   note "Restart Claude Code for this to take effect."
 fi
 

@@ -36,7 +36,13 @@ Before doing anything else, verify that the required tool connections are in pla
 ./scripts/setup-connections.sh --check
 ```
 
-Surface the output in chat. If `sf-mcp-server` is missing, tell the user to install it (`brew install sf-mcp-server`) and re-run the script — this only blocks `/notion-sync --sf`, not core onboarding, so you can continue.
+Surface the output in chat. If the Salesforce MCP is missing, tell the user to install it and re-run the script — this only blocks `/notion-sync --sf`, not core onboarding, so you can continue:
+
+```bash
+npm install -g @salesforce/cli
+sf org login web
+claude mcp add salesforce -- npx -y @salesforce/mcp
+```
 
 **Surface the claude.ai integration checklist.** Tell the user:
 

@@ -7,7 +7,7 @@ Set up the assistant for the current user.
 
 Read the procedure in `agents/assistant-onboarding.md` and execute it inline as the main assistant — do not try to spawn `assistant-onboarding` as a subagent (custom agents in this plugin are procedure documents, not registered subagent types). The steps:
 
-0. **Run the connection check first.** Before anything else, run `./scripts/setup-connections.sh --check` via `mcp__Control_your_Mac__osascript` (file and bash tools are sandboxed in Cowork and cannot reach the plugin directory). Surface the full output in chat. If `sf-mcp-server` is missing, tell the user to install it. Do not skip this step.
+0. **Run the connection check first.** Before anything else, run `./scripts/setup-connections.sh --check` via `mcp__Control_your_Mac__osascript` (file and bash tools are sandboxed in Cowork and cannot reach the plugin directory). Surface the full output in chat. If the Salesforce CLI (`sf`) is missing, tell the user to install it (`npm install -g @salesforce/cli`, then `sf org login web`, then `claude mcp add salesforce -- npx -y @salesforce/mcp`). Do not skip this step.
 1. **Resolve the persistent data directory.** Run the following via `mcp__Control_your_Mac__osascript` (Cowork) or the Bash tool (Claude Code CLI):
    ```bash
    PLUGIN_DATA_DIR=$(cat "$HOME/.claude/aise-assistant.datadir" 2>/dev/null)
